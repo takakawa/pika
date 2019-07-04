@@ -59,7 +59,6 @@ Partition::Partition(const std::string& table_name,
   table_name_(table_name),
   partition_id_(partition_id),
   binlog_io_error_(false),
-  bgsave_engine_(NULL),
   purging_(false) {
 
   db_path_ = g_pika_conf->classic_mode() ?
@@ -82,12 +81,14 @@ Partition::Partition(const std::string& table_name,
 
   pthread_rwlock_init(&db_rwlock_, &attr);
 
+#if 0
   db_ = std::shared_ptr<blackwidow::BlackWidow>(new blackwidow::BlackWidow());
   rocksdb::Status s = db_->Open(g_pika_server->bw_options(), db_path_);
 
   opened_ = s.ok() ? true : false;
   assert(db_);
   assert(s.ok());
+#endif
   LOG(INFO) << partition_name_ << " DB Success";
 
   logger_ = std::shared_ptr<Binlog>(
@@ -96,7 +97,9 @@ Partition::Partition(const std::string& table_name,
 
 Partition::~Partition() {
   Close();
+#if 0
   delete bgsave_engine_;
+#endif
   pthread_rwlock_destroy(&db_rwlock_);
 }
 
@@ -110,7 +113,6 @@ void Partition::Close() {
     return;
   }
   slash::RWLock rwl(&db_rwlock_, true);
-  db_.reset();
   logger_.reset();
   opened_ = false;
 }
@@ -153,9 +155,11 @@ std::shared_ptr<Binlog> Partition::logger() const {
   return logger_;
 }
 
+#if 0
 std::shared_ptr<blackwidow::BlackWidow> Partition::db() const {
   return db_;
 }
+#endif
 
 void Partition::DoCommand(Cmd* const cmd) {
   if (!opened_) {
@@ -210,10 +214,12 @@ void Partition::DoCommand(Cmd* const cmd) {
   }
 }
 
+#if 0
 void Partition::Compact(const blackwidow::DataType& type) {
   if (!opened_) return;
   db_->Compact(type);
 }
+#endif
 
 void Partition::DbRWLockWriter() {
   pthread_rwlock_wrlock(&db_rwlock_);
@@ -370,7 +376,9 @@ bool Partition::ChangeDb(const std::string& new_path) {
   RWLock l(&db_rwlock_, true);
   LOG(INFO) << "Partition: "<< partition_name_
       << ", Prepare change db from: " << tmp_path;
+#if 0
   db_.reset();
+#endif
 
   if (0 != slash::RenameFile(db_path_.c_str(), tmp_path)) {
     LOG(WARNING) << "Partition: " << partition_name_
@@ -384,10 +392,12 @@ bool Partition::ChangeDb(const std::string& new_path) {
     return false;
   }
 
-  db_.reset(new blackwidow::BlackWidow());
-  rocksdb::Status s = db_->Open(g_pika_server->bw_options(), db_path_);
-  assert(db_);
-  assert(s.ok());
+#if 0
+  //db_.reset(new blackwidow::BlackWidow());
+  //rocksdb::Status s = db_->Open(g_pika_server->bw_options(), db_path_);
+  //assert(db_);
+  //assert(s.ok());
+#endif
   slash::DeleteDirIfExist(tmp_path);
   LOG(INFO) << "Partition: " << partition_name_ << ", Change db success";
   return true;
@@ -454,6 +464,7 @@ bool Partition::RunBgsaveEngine() {
     << ",  filenum=" << info.filenum
     << ", offset=" << info.offset;
 
+#if 0
   // Backup to tmp dir
   rocksdb::Status s = bgsave_engine_->CreateNewBackup(info.path);
   LOG(INFO) << partition_name_ << " create new backup finished.";
@@ -462,6 +473,7 @@ bool Partition::RunBgsaveEngine() {
     LOG(WARNING) << partition_name_ << " create new backup failed :" << s.ToString();
     return false;
   }
+#endif
   return true;
 }
 
@@ -490,6 +502,7 @@ bool Partition::InitBgsaveEnv() {
 
 // Prepare bgsave env, need bgsave_protector protect
 bool Partition::InitBgsaveEngine() {
+#if 0
   delete bgsave_engine_;
   rocksdb::Status s = blackwidow::BackupEngine::Open(db().get(), &bgsave_engine_);
   if (!s.ok()) {
@@ -509,6 +522,7 @@ bool Partition::InitBgsaveEngine() {
       return false;
     }
   }
+#endif
   return true;
 }
 
@@ -530,7 +544,9 @@ bool Partition::FlushDB() {
   }
 
   LOG(INFO) << partition_name_ << " Delete old db...";
+#if 0
   db_.reset();
+#endif
 
   std::string dbpath = db_path_;
   if (dbpath[dbpath.length() - 1] == '/') {
@@ -539,10 +555,12 @@ bool Partition::FlushDB() {
   dbpath.append("_deleting/");
   slash::RenameFile(db_path_, dbpath.c_str());
 
-  db_ = std::shared_ptr<blackwidow::BlackWidow>(new blackwidow::BlackWidow());
-  rocksdb::Status s = db_->Open(g_pika_server->bw_options(), db_path_);
-  assert(db_);
-  assert(s.ok());
+#if 0
+//  db_ = std::shared_ptr<blackwidow::BlackWidow>(new blackwidow::BlackWidow());
+//  rocksdb::Status s = db_->Open(g_pika_server->bw_options(), db_path_);
+//  assert(db_);
+//  assert(s.ok());
+#endif
   LOG(INFO) << partition_name_ << " Open new db success";
   g_pika_server->PurgeDir(dbpath);
   return true;
@@ -556,7 +574,9 @@ bool Partition::FlushSubDB(const std::string& db_name) {
   }
 
   LOG(INFO) << partition_name_ << " Delete old " + db_name + " db...";
+#if 0
   db_.reset();
+#endif
 
   std::string dbpath = db_path_;
   if (dbpath[dbpath.length() - 1] != '/') {
@@ -566,11 +586,12 @@ bool Partition::FlushSubDB(const std::string& db_name) {
   std::string sub_dbpath = dbpath + db_name;
   std::string del_dbpath = dbpath + db_name + "_deleting";
   slash::RenameFile(sub_dbpath, del_dbpath);
-
-  db_ = std::shared_ptr<blackwidow::BlackWidow>(new blackwidow::BlackWidow());
-  rocksdb::Status s = db_->Open(g_pika_server->bw_options(), db_path_);
-  assert(db_);
-  assert(s.ok());
+#if 0
+//  db_ = std::shared_ptr<blackwidow::BlackWidow>(new blackwidow::BlackWidow());
+//  rocksdb::Status s = db_->Open(g_pika_server->bw_options(), db_path_);
+//  assert(db_);
+//  assert(s.ok());
+#endif
   LOG(INFO) << partition_name_ << " open new " + db_name + " db success";
   g_pika_server->PurgeDir(del_dbpath);
   return true;

@@ -57,12 +57,14 @@ void Table::BgSaveTable() {
   }
 }
 
+#if 0
 void Table::CompactTable(const blackwidow::DataType& type) {
   slash::RWLock l(&partitions_rw_, false);
   for (const auto& item : partitions_) {
     item.second->Compact(type);
   }
 }
+#endif
 
 bool Table::FlushPartitionDB() {
   slash::MutexLock ml(&key_scan_protector_);
@@ -121,6 +123,7 @@ bool Table::IsKeyScaning() {
   return key_scan_info_.key_scaning_;
 }
 
+#if 0
 void Table::RunKeyScan() {
   rocksdb::Status s;
   std::vector<blackwidow::KeyInfo> new_key_infos(5);
@@ -149,16 +152,19 @@ void Table::RunKeyScan() {
   }
   key_scan_info_.key_scaning_ = false;
 }
+#endif
 
 void Table::StopKeyScan() {
+#if 0
   slash::RWLock rwl(&partitions_rw_, false);
   slash::MutexLock ml(&key_scan_protector_);
   for (const auto& item : partitions_) {
     item.second->db()->StopScanKeyNum();
   }
   key_scan_info_.key_scaning_ = false;
+#endif
 }
-
+#if 0
 void Table::ScanDatabase(const blackwidow::DataType& type) {
   slash::RWLock rwl(&partitions_rw_, false);
   for (const auto& item : partitions_) {
@@ -166,12 +172,13 @@ void Table::ScanDatabase(const blackwidow::DataType& type) {
     item.second->db()->ScanDatabase(type);
   }
 }
+#endif
 
 KeyScanInfo Table::GetKeyScanInfo() {
   slash::MutexLock lm(&key_scan_protector_);
   return key_scan_info_;
 }
-
+#if 0
 void Table::Compact(const blackwidow::DataType& type) {
   slash::RWLock rwl(&partitions_rw_, true);
   for (const auto& item : partitions_) {
@@ -179,10 +186,13 @@ void Table::Compact(const blackwidow::DataType& type) {
   }
 }
 
+#endif
 void Table::DoKeyScan(void *arg) {
+#if 0
   BgTaskArg* bg_task_arg = reinterpret_cast<BgTaskArg*>(arg);
   bg_task_arg->table->RunKeyScan();
   delete bg_task_arg;
+#endif
 }
 
 void Table::InitKeyScan() {

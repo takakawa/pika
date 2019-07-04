@@ -6,7 +6,9 @@
 #ifndef PIKA_TABLE_H_
 #define PIKA_TABLE_H_
 
+#if 0
 #include "blackwidow/blackwidow.h"
+#endif
 
 #include "include/pika_command.h"
 #include "include/pika_partition.h"
@@ -18,13 +20,14 @@ struct KeyScanInfo {
   time_t start_time;
   std::string s_start_time;
   int32_t duration;
+#if 0
   std::vector<blackwidow::KeyInfo> key_infos; //the order is strings, hashes, lists, zsets, sets
+#endif
   bool key_scaning_;
   KeyScanInfo() :
       start_time(0),
       s_start_time("1970-01-01 08:00:00"),
       duration(-3),
-      key_infos({{0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}),
       key_scaning_(false) {
   }
 };
@@ -44,7 +47,6 @@ class Table : public std::enable_shared_from_this<Table>{
 
   std::string GetTableName();
   void BgSaveTable();
-  void CompactTable(const blackwidow::DataType& type);
   bool FlushPartitionDB();
   bool FlushPartitionSubDB(const std::string& db_name);
   bool IsBinlogIoError();
@@ -55,11 +57,8 @@ class Table : public std::enable_shared_from_this<Table>{
   bool IsKeyScaning();
   void RunKeyScan();
   void StopKeyScan();
-  void ScanDatabase(const blackwidow::DataType& type);
   KeyScanInfo GetKeyScanInfo();
 
-  // Compact use;
-  void Compact(const blackwidow::DataType& type);
 
   void LeaveAllPartition();
   std::shared_ptr<Partition> GetPartitionById(uint32_t partition_id);

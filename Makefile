@@ -76,11 +76,6 @@ ifndef GLOG_PATH
 GLOG_PATH = $(THIRD_PATH)/glog
 endif
 
-ifndef BLACKWIDOW_PATH
-BLACKWIDOW_PATH = $(THIRD_PATH)/blackwidow
-endif
-BLACKWIDOW = $(BLACKWIDOW_PATH)/lib/libblackwidow$(DEBUG_SUFFIX).a
-
 
 ifeq ($(360), 1)
 GLOG := $(GLOG_PATH)/.libs/libglog.a
@@ -89,7 +84,6 @@ endif
 INCLUDE_PATH = -I. \
 							 -I$(SLASH_PATH) \
 							 -I$(PINK_PATH) \
-							 -I$(BLACKWIDOW_PATH)/include \
 							 -I$(ROCKSDB_PATH) \
 							 -I$(ROCKSDB_PATH)/include \
 
@@ -100,7 +94,6 @@ endif
 LIB_PATH = -L./ \
 					 -L$(SLASH_PATH)/slash/lib \
 					 -L$(PINK_PATH)/pink/lib \
-					 -L$(BLACKWIDOW_PATH)/lib \
 					 -L$(ROCKSDB_PATH)        \
 
 ifeq ($(360),1)
@@ -110,7 +103,6 @@ endif
 LDFLAGS += $(LIB_PATH) \
 			 		 -lpink$(DEBUG_SUFFIX) \
 			 		 -lslash$(DEBUG_SUFFIX) \
-					 -lblackwidow$(DEBUG_SUFFIX) \
 					 -lrocksdb$(DEBUG_SUFFIX) \
 					 -lglog \
 					 -lprotobuf \
@@ -228,8 +220,6 @@ $(PINK):
 $(ROCKSDB):
 	$(AM_V_at)make -j $(PROCESSOR_NUMS) -C $(ROCKSDB_PATH)/ static_lib DISABLE_JEMALLOC=1 DEBUG_LEVEL=$(DEBUG_LEVEL)
 
-$(BLACKWIDOW):
-	$(AM_V_at)make -C $(BLACKWIDOW_PATH) ROCKSDB_PATH=$(ROCKSDB_PATH) SLASH_PATH=$(SLASH_PATH) DEBUG_LEVEL=$(DEBUG_LEVEL)
 
 $(GLOG):
 	cd $(THIRD_PATH)/glog; if [ ! -f ./Makefile ]; then ./configure --disable-shared; fi; make; echo '*' > $(CURDIR)/third/glog/.gitignore;
@@ -244,6 +234,5 @@ clean:
 distclean: clean
 	make -C $(PINK_PATH)/pink/ SLASH_PATH=$(SLASH_PATH) clean
 	make -C $(SLASH_PATH)/slash/ clean
-	make -C $(BLACKWIDOW_PATH)/ clean
 	make -C $(ROCKSDB_PATH)/ clean
 #	make -C $(GLOG_PATH)/ clean

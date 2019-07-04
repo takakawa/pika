@@ -6,10 +6,14 @@
 #ifndef PIKA_PARTITION_H_
 #define PIKA_PARTITION_H_
 
+#if 0
 #include "blackwidow/blackwidow.h"
 #include "blackwidow/backupable.h"
-
+#endif
+#include <memory>
+#include <atomic>
 #include "include/pika_binlog.h"
+#include <sys/stat.h>
 
 class Cmd;
 
@@ -63,10 +67,8 @@ class Partition : public std::enable_shared_from_this<Partition> {
   uint32_t GetPartitionId() const;
   std::string GetPartitionName() const;
   std::shared_ptr<Binlog> logger() const;
-  std::shared_ptr<blackwidow::BlackWidow> db() const;
 
   void DoCommand(Cmd* const cmd);
-  void Compact(const blackwidow::DataType& type);
 
   void DbRWLockWriter();
   void DbRWLockReader();
@@ -120,7 +122,6 @@ class Partition : public std::enable_shared_from_this<Partition> {
 
   pthread_rwlock_t db_rwlock_;
   slash::RecordMutex mutex_record_;
-  std::shared_ptr<blackwidow::BlackWidow> db_;
 
   /*
    * BgSave use
@@ -133,7 +134,6 @@ class Partition : public std::enable_shared_from_this<Partition> {
   void FinishBgsave();
   BgSaveInfo bgsave_info_;
   slash::Mutex bgsave_protector_;
-  blackwidow::BackupEngine* bgsave_engine_;
 
   /*
    * Purgelogs use

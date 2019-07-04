@@ -14,8 +14,10 @@
 #include "pink/include/bg_thread.h"
 #include "pink/include/thread_pool.h"
 #include "pink/include/pink_pubsub.h"
+#if 0
 #include "blackwidow/blackwidow.h"
 #include "blackwidow/backupable.h"
+#endif
 
 #include "include/pika_conf.h"
 #include "include/pika_table.h"
@@ -102,7 +104,6 @@ class PikaServer {
   bool force_full_sync();
   void SetForceFullSync(bool v);
   void SetDispatchQueueLimit(int queue_limit);
-  blackwidow::BlackwidowOptions bw_options();
 
   /*
    * Table use
@@ -296,8 +297,6 @@ class PikaServer {
   int port_;
   time_t start_time_s_;
 
-  blackwidow::BlackwidowOptions bw_options_;
-  void InitBlackwidowOptions();
 
   std::atomic<bool> exit_;
 
