@@ -52,8 +52,7 @@ PikaServer::PikaServer() :
   role_(PIKA_ROLE_SINGLE),
   last_meta_sync_timestamp_(0),
   loop_partition_state_machine_(false),
-  force_full_sync_(false),
-  slowlog_entry_id_(0) {
+  force_full_sync_(false){
 
   //Init server ip host
   if (!ServerInit()) {
@@ -83,15 +82,12 @@ PikaServer::PikaServer() :
   LOG(INFO) << "Worker queue limit is " << worker_queue_limit;
   pika_dispatch_thread_ = new PikaDispatchThread(ips, port_, worker_num_, 3000,
                                                  worker_queue_limit);
-  pika_monitor_thread_ = new PikaMonitorThread();
   pika_rsync_service_ = new PikaRsyncService(g_pika_conf->db_sync_path(),
                                              g_pika_conf->port() + kPortShiftRSync);
-  pika_pubsub_thread_ = new pink::PubSubThread();
   pika_auxiliary_thread_ = new PikaAuxiliaryThread();
   pika_thread_pool_ = new pink::ThreadPool(g_pika_conf->thread_pool_size(), 100000);
 
   pthread_rwlock_init(&state_protector_, NULL);
-  pthread_rwlock_init(&slowlog_protector_, NULL);
 }
 
 PikaServer::~PikaServer() {
@@ -110,20 +106,16 @@ PikaServer::~PikaServer() {
     }
   }
 
-  delete pika_pubsub_thread_;
   delete pika_auxiliary_thread_;
   delete pika_rsync_service_;
   delete pika_thread_pool_;
-  delete pika_monitor_thread_;
 
   bgsave_thread_.StopThread();
-  key_scan_thread_.StopThread();
 
   tables_.clear();
 
   pthread_rwlock_destroy(&tables_rw_);
   pthread_rwlock_destroy(&state_protector_);
-  pthread_rwlock_destroy(&slowlog_protector_);
 
   LOG(INFO) << "PikaServer " << pthread_self() << " exit!!!";
 }
@@ -222,11 +214,6 @@ void PikaServer::Start() {
     tables_.clear();
     LOG(FATAL) << "Start Dispatch Error: " << ret << (ret == pink::kBindError ? ": bind port " + std::to_string(port_) + " conflict"
             : ": other error") << ", Listen on this port to handle the connected redis client";
-  }
-  ret = pika_pubsub_thread_->StartThread();
-  if (ret != pink::kSuccess) {
-    tables_.clear();
-    LOG(FATAL) << "Start Pubsub Error: " << ret << (ret == pink::kBindError ? ": bind port conflict" : ": other error");
   }
 
   ret = pika_auxiliary_thread_->StartThread();
@@ -375,15 +362,7 @@ void PikaServer::InitTableStruct() {
 }
 
 bool PikaServer::RebuildTableStruct(const std::vector<TableStruct>& table_structs) {
-  if (IsKeyScaning()) {
-    LOG(WARNING) << "Some table in key scaning, rebuild table struct failed";
-    return false;
-  }
 
-  if (IsBgSaving()) {
-    LOG(WARNING) << "Some table in bgsaving, rebuild table struct failed";
-    return false;
-  }
 
   {
     slash::RWLock rwl(&tables_rw_, true);
@@ -411,46 +390,7 @@ std::shared_ptr<Table> PikaServer::GetTable(const std::string &table_name) {
   return (iter == tables_.end()) ? NULL : iter->second;
 }
 
-bool PikaServer::IsBgSaving() {
-  slash::RWLock table_rwl(&tables_rw_, false);
-  for (const auto& table_item : tables_) {
-    slash::RWLock partition_rwl(&table_item.second->partitions_rw_, false);
-    for (const auto& patition_item : table_item.second->partitions_) {
-      if (patition_item.second->IsBgSaving()) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
 
-bool PikaServer::IsKeyScaning() {
-  slash::RWLock table_rwl(&tables_rw_, false);
-  for (const auto& table_item : tables_) {
-    if (table_item.second->IsKeyScaning()) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool PikaServer::IsCompacting() {
-#if 0
-  slash::RWLock table_rwl(&tables_rw_, false);
-  for (const auto& table_item : tables_) {
-    slash::RWLock partition_rwl(&table_item.second->partitions_rw_, false);
-    for (const auto& partition_item : table_item.second->partitions_) {
-      partition_item.second->DbRWLockReader();
-      std::string task_type = partition_item.second->db()->GetCurrentTaskType();
-      partition_item.second->DbRWUnLock();
-      if (strcasecmp(task_type.data(), "no")) {
-        return true;
-      }
-    }
-  }
-#endif
-  return false;
-}
 
 bool PikaServer::IsTableExist(const std::string& table_name) {
   return GetTable(table_name) ? true : false;
@@ -513,8 +453,8 @@ Status PikaServer::DoSameThingSpecificTable(const TaskType& type, const std::set
       }
     }
   }
-  return Status::OK();
 #endif
+  return Status::OK();
 }
 
 void PikaServer::PreparePartitionTrySync() {
@@ -1043,19 +983,13 @@ std::string PikaServer::DbSyncTaskIndex(const std::string& ip,
   return buf;
 }
 
-void PikaServer::KeyScanTaskSchedule(pink::TaskFunc func, void* arg) {
-  key_scan_thread_.StartThread();
-  key_scan_thread_.Schedule(func, arg);
-}
 
 void PikaServer::ClientKillAll() {
   pika_dispatch_thread_->ClientKillAll();
-  pika_monitor_thread_->ThreadClientKill();
 }
 
 int PikaServer::ClientKill(const std::string &ip_port) {
-  if (pika_dispatch_thread_->ClientKill(ip_port)
-    || pika_monitor_thread_->ThreadClientKill(ip_port)) {
+  if (pika_dispatch_thread_->ClientKill(ip_port)) {
     return 1;
   }
   return 0;
@@ -1064,84 +998,11 @@ int PikaServer::ClientKill(const std::string &ip_port) {
 int64_t PikaServer::ClientList(std::vector<ClientInfo> *clients) {
   int64_t clients_num = 0;
   clients_num += pika_dispatch_thread_->ThreadClientList(clients);
-  clients_num += pika_monitor_thread_->ThreadClientList(clients);
   return clients_num;
 }
 
-bool PikaServer::HasMonitorClients() {
-  return pika_monitor_thread_->HasMonitorClients();
-}
 
-void PikaServer::AddMonitorMessage(const std::string& monitor_message) {
-  pika_monitor_thread_->AddMonitorMessage(monitor_message);
-}
 
-void PikaServer::AddMonitorClient(std::shared_ptr<PikaClientConn> client_ptr) {
-  pika_monitor_thread_->AddMonitorClient(client_ptr);
-}
-
-void PikaServer::SlowlogTrim() {
-  pthread_rwlock_wrlock(&slowlog_protector_);
-  while (slowlog_list_.size() > static_cast<uint32_t>(g_pika_conf->slowlog_max_len())) {
-    slowlog_list_.pop_back();
-  }
-  pthread_rwlock_unlock(&slowlog_protector_);
-}
-
-void PikaServer::SlowlogReset() {
-  pthread_rwlock_wrlock(&slowlog_protector_);
-  slowlog_list_.clear();
-  pthread_rwlock_unlock(&slowlog_protector_);
-}
-
-uint32_t PikaServer::SlowlogLen() {
-  RWLock l(&slowlog_protector_, false);
-  return slowlog_list_.size();
-}
-
-void PikaServer::SlowlogObtain(int64_t number, std::vector<SlowlogEntry>* slowlogs) {
-  pthread_rwlock_rdlock(&slowlog_protector_);
-  slowlogs->clear();
-  std::list<SlowlogEntry>::const_iterator iter = slowlog_list_.begin();
-  while (number-- && iter != slowlog_list_.end()) {
-    slowlogs->push_back(*iter);
-    iter++;
-  }
-  pthread_rwlock_unlock(&slowlog_protector_);
-}
-
-void PikaServer::SlowlogPushEntry(const PikaCmdArgsType& argv, int32_t time, int64_t duration) {
-  SlowlogEntry entry;
-  uint32_t slargc = (argv.size() < SLOWLOG_ENTRY_MAX_ARGC)
-      ? argv.size() : SLOWLOG_ENTRY_MAX_ARGC;
-
-  for (uint32_t idx = 0; idx < slargc; ++idx) {
-    if (slargc != argv.size() && idx == slargc - 1) {
-      char buffer[32];
-      sprintf(buffer, "... (%lu more arguments)", argv.size() - slargc + 1);
-      entry.argv.push_back(std::string(buffer));
-    } else {
-      if (argv[idx].size() > SLOWLOG_ENTRY_MAX_STRING) {
-        char buffer[32];
-        sprintf(buffer, "... (%lu more bytes)", argv[idx].size() - SLOWLOG_ENTRY_MAX_STRING);
-        std::string suffix(buffer);
-        std::string brief = argv[idx].substr(0, SLOWLOG_ENTRY_MAX_STRING);
-        entry.argv.push_back(brief + suffix);
-      } else {
-        entry.argv.push_back(argv[idx]);
-      }
-    }
-  }
-
-  pthread_rwlock_wrlock(&slowlog_protector_);
-  entry.id = slowlog_entry_id_++;
-  entry.start_time = time;
-  entry.duration = duration;
-  slowlog_list_.push_front(entry);
-  pthread_rwlock_unlock(&slowlog_protector_);
-
-  SlowlogTrim();
-}
 
 void PikaServer::ResetStat() {
   statistic_data_.accumulative_connections.store(0);
@@ -1281,39 +1142,9 @@ Status PikaServer::SendRemoveSlaveNodeRequest(const std::string& table,
   return g_pika_rm->GetPikaReplClient()->SendRemoveSlaveNode(table, partition_id);
 }
 
-int PikaServer::PubSubNumPat() {
-  return pika_pubsub_thread_->PubSubNumPat();
-}
 
-int PikaServer::Publish(const std::string& channel, const std::string& msg) {
-  int receivers = pika_pubsub_thread_->Publish(channel, msg);
-  return receivers;
-}
 
-int PikaServer::UnSubscribe(std::shared_ptr<pink::PinkConn> conn,
-                            const std::vector<std::string>& channels,
-                            bool pattern,
-                            std::vector<std::pair<std::string, int>>* result) {
-  int subscribed = pika_pubsub_thread_->UnSubscribe(conn, channels, pattern, result);
-  return subscribed;
-}
 
-void PikaServer::Subscribe(std::shared_ptr<pink::PinkConn> conn,
-                           const std::vector<std::string>& channels,
-                           bool pattern,
-                           std::vector<std::pair<std::string, int>>* result) {
-  pika_pubsub_thread_->Subscribe(conn, channels, pattern, result);
-}
-
-void PikaServer::PubSubChannels(const std::string& pattern,
-                      std::vector<std::string >* result) {
-  pika_pubsub_thread_->PubSubChannels(pattern, result);
-}
-
-void PikaServer::PubSubNumSub(const std::vector<std::string>& channels,
-                    std::vector<std::pair<std::string, int>>* result) {
-  pika_pubsub_thread_->PubSubNumSub(channels, result);
-}
 
 /******************************* PRIVATE *******************************/
 

@@ -156,18 +156,6 @@ int PikaReplBgWorker::HandleWriteBinlog(pink::RedisParser* parser, const pink::R
   const BinlogItem& binlog_item = worker->binlog_item_;
   g_pika_server->UpdateQueryNumAndExecCountTable(argv[0]);
 
-  // Monitor related
-  std::string monitor_message;
-  if (g_pika_server->HasMonitorClients()) {
-    std::string table_name = g_pika_conf->classic_mode()
-      ? worker->table_name_.substr(2) : worker->table_name_;
-    std::string monitor_message = std::to_string(1.0 * slash::NowMicros() / 1000000)
-      + " [" + table_name + " " + worker->ip_port_ + "]";
-    for (const auto& item : argv) {
-      monitor_message += " " + slash::ToRead(item);
-    }
-    g_pika_server->AddMonitorMessage(monitor_message);
-  }
 
   std::string opt = argv[0];
   Cmd* c_ptr = g_pika_cmd_table_manager->GetCmd(slash::StringToLower(opt));
@@ -240,16 +228,6 @@ void PikaReplBgWorker::HandleBGWorkerWriteDB(void* arg) {
     partition->DbRWUnLock();
   }
 
-  if (g_pika_conf->slowlog_slower_than() >= 0) {
-    int32_t start_time = start_us / 1000000;
-    int64_t duration = slash::NowMicros() - start_us;
-    if (duration > g_pika_conf->slowlog_slower_than()) {
-      g_pika_server->SlowlogPushEntry(*argv, start_time, duration);
-      if (g_pika_conf->slowlog_write_errorlog()) {
-        LOG(ERROR) << "command: " << opt << ", start_time(s): " << start_time << ", duration(us): " << duration;
-      }
-    }
-  }
   delete task_arg;
 }
 

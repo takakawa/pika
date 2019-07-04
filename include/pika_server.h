@@ -23,7 +23,6 @@
 #include "include/pika_table.h"
 #include "include/pika_binlog.h"
 #include "include/pika_define.h"
-#include "include/pika_monitor_thread.h"
 #include "include/pika_rsync_service.h"
 #include "include/pika_dispatch_thread.h"
 #include "include/pika_repl_client.h"
@@ -112,8 +111,6 @@ class PikaServer {
   bool RebuildTableStruct(const std::vector<TableStruct>& table_structs);
   std::shared_ptr<Table> GetTable(const std::string& table_name);
   bool IsBgSaving();
-  bool IsKeyScaning();
-  bool IsCompacting();
   bool IsTableExist(const std::string& table_name);
   bool IsCommandSupport(const std::string& command);
   bool IsTableBinlogIoError(const std::string& table_name);
@@ -207,10 +204,6 @@ class PikaServer {
                               const std::string& table_name,
                               uint32_t partition_id);
 
-  /*
-   * Keyscan used
-   */
-  void KeyScanTaskSchedule(pink::TaskFunc func, void* arg);
 
   /*
    * Client used
@@ -219,21 +212,7 @@ class PikaServer {
   int ClientKill(const std::string &ip_port);
   int64_t ClientList(std::vector<ClientInfo> *clients = nullptr);
 
-  /*
-   * Monitor used
-   */
-  bool HasMonitorClients();
-  void AddMonitorMessage(const std::string &monitor_message);
-  void AddMonitorClient(std::shared_ptr<PikaClientConn> client_ptr);
 
-  /*
-   * Slowlog used
-   */
-  void SlowlogTrim();
-  void SlowlogReset();
-  uint32_t SlowlogLen();
-  void SlowlogObtain(int64_t number, std::vector<SlowlogEntry>* slowlogs);
-  void SlowlogPushEntry(const PikaCmdArgsType& argv, int32_t time, int64_t duration);
 
   /*
    * Statistic used
@@ -261,23 +240,6 @@ class PikaServer {
                                            bool is_frist_send = false);
   Status SendRemoveSlaveNodeRequest(const std::string& table, uint32_t partition_id);
 
-  /*
-   * PubSub used
-   */
-  int PubSubNumPat();
-  int Publish(const std::string& channel, const std::string& msg);
-  int UnSubscribe(std::shared_ptr<pink::PinkConn> conn,
-                  const std::vector<std::string>& channels,
-                  const bool pattern,
-                  std::vector<std::pair<std::string, int>>* result);
-  void Subscribe(std::shared_ptr<pink::PinkConn> conn,
-                 const std::vector<std::string>& channels,
-                 const bool pattern,
-                 std::vector<std::pair<std::string, int>>* result);
-  void PubSubChannels(const std::string& pattern,
-                      std::vector<std::string>* result);
-  void PubSubNumSub(const std::vector<std::string>& channels,
-                    std::vector<std::pair<std::string, int>>* result);
 
   friend class Cmd;
   friend class InfoCmd;
@@ -348,37 +310,18 @@ class PikaServer {
   slash::Mutex db_sync_protector_;
   std::unordered_set<std::string> db_sync_slaves_;
 
-  /*
-   * Keyscan used
-   */
-  pink::BGThread key_scan_thread_;
-
-  /*
-   * Monitor used
-   */
-  PikaMonitorThread* pika_monitor_thread_;
 
   /*
    * Rsync used
    */
   PikaRsyncService* pika_rsync_service_;
 
-  /*
-   * Pubsub used
-   */
-  pink::PubSubThread* pika_pubsub_thread_;
 
   /*
    * Communication used
    */
   PikaAuxiliaryThread* pika_auxiliary_thread_;
 
-  /*
-   * Slowlog used
-   */
-  uint64_t slowlog_entry_id_;
-  pthread_rwlock_t slowlog_protector_;
-  std::list<SlowlogEntry> slowlog_list_;
 
   /*
    * Statistic used

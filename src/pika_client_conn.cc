@@ -53,10 +53,6 @@ std::string PikaClientConn::DoCmd(const PikaCmdArgsType& argv,
       return "-Err unknown or unsupported command \'" + opt + "\'\r\n";
   }
 
-  // Check authed
-  if (!auth_stat_.IsAuthed(c_ptr)) {
-    return "-ERR NOAUTH Authentication required.\r\n";
-  }
 
   uint64_t start_us = 0;
   if (g_pika_conf->slowlog_slower_than() >= 0) {
@@ -72,18 +68,6 @@ std::string PikaClientConn::DoCmd(const PikaCmdArgsType& argv,
     }
   }
 
-  std::string monitor_message;
-  bool is_monitoring = g_pika_server->HasMonitorClients();
-  if (is_monitoring) {
-    std::string table_name = g_pika_conf->classic_mode()
-      ? current_table_.substr(2) : current_table_;
-    monitor_message = std::to_string(1.0*slash::NowMicros()/1000000) +
-      " [" + table_name + " " + this->ip_port() + "]";
-    for (PikaCmdArgsType::const_iterator iter = argv.begin(); iter != argv.end(); iter++) {
-      monitor_message += " " + slash::ToRead(*iter);
-    }
-    g_pika_server->AddMonitorMessage(monitor_message);
-  }
 
   // Initial
   c_ptr->Initial(argv, current_table_);
@@ -93,82 +77,6 @@ std::string PikaClientConn::DoCmd(const PikaCmdArgsType& argv,
 
   g_pika_server->UpdateQueryNumAndExecCountTable(opt);
  
-  // PubSub connection
-  if (this->IsPubSub()) {
-    if (opt != kCmdNameSubscribe &&
-        opt != kCmdNameUnSubscribe &&
-        opt != kCmdNamePing &&
-        opt != kCmdNamePSubscribe &&
-        opt != kCmdNamePUnSubscribe) {
-      return "-ERR only (P)SUBSCRIBE / (P)UNSUBSCRIBE / PING / QUIT allowed in this context\r\n";
-    }
-  }
-
-  // Select
-  if (opt == kCmdNameSelect) {
-    std::string table_name;
-    if (g_pika_conf->classic_mode()) {
-      int index = atoi(argv[1].data());
-      if (std::to_string(index) != argv[1]) {
-        return "-ERR invalid DB index\r\n";
-      } else if (index < 0 || index >= g_pika_conf->databases()) {
-        return "-ERR DB index is out of range\r\n";
-      } else {
-        table_name = "db" + argv[1];
-      }
-    } else {
-      table_name = argv[1];
-    }
-    if (g_pika_server->IsTableExist(table_name)) {
-      current_table_ = table_name;
-      return "+OK\r\n";
-    } else {
-      return "-ERR invalid Table Name\r\n";
-    }
-  }
-
-  // Monitor
-  if (opt == kCmdNameMonitor) {
-    std::shared_ptr<PinkConn> conn = server_thread_->MoveConnOut(fd());
-    assert(conn.get() == this);
-    g_pika_server->AddMonitorClient(std::dynamic_pointer_cast<PikaClientConn>(conn));
-    g_pika_server->AddMonitorMessage("OK");
-    return ""; // Monitor thread will return "OK"
-  }
-
-  //PubSub
-  if (opt == kCmdNamePSubscribe || opt == kCmdNameSubscribe) {             // PSubscribe or Subscribe
-    std::shared_ptr<PinkConn> conn = std::dynamic_pointer_cast<PikaClientConn>(shared_from_this());
-    if (!this->IsPubSub()) {
-      conn = server_thread_->MoveConnOut(fd());
-    }
-    std::vector<std::string > channels;
-    for (size_t i = 1; i < argv.size(); i++) {
-      channels.push_back(argv[i]);
-    }
-    std::vector<std::pair<std::string, int>> result;
-    this->SetIsPubSub(true);
-    this->SetHandleType(pink::HandleType::kSynchronous);
-    g_pika_server->Subscribe(conn, channels, opt == kCmdNamePSubscribe, &result);
-    return ConstructPubSubResp(opt, result);
-  } else if (opt == kCmdNamePUnSubscribe || opt == kCmdNameUnSubscribe) {  // PUnSubscribe or UnSubscribe
-    std::vector<std::string > channels;
-    for (size_t i = 1; i < argv.size(); i++) {
-      channels.push_back(argv[i]);
-    }
-    std::vector<std::pair<std::string, int>> result;
-    std::shared_ptr<PinkConn> conn = std::dynamic_pointer_cast<PikaClientConn>(shared_from_this());
-    int subscribed = g_pika_server->UnSubscribe(conn, channels, opt == kCmdNamePUnSubscribe, &result);
-    if (subscribed == 0 && this->IsPubSub()) {
-      /*
-       * if the number of client subscribed is zero,
-       * the client will exit the Pub/Sub state
-       */
-      server_thread_->HandleNewConn(fd(), ip_port());
-      this->SetIsPubSub(false);
-    }
-    return ConstructPubSubResp(opt, result);
-  }
 
   if (!g_pika_server->IsCommandSupport(opt)) {
     return "-ERR This command only support in classic mode\r\n";
@@ -191,32 +99,6 @@ std::string PikaClientConn::DoCmd(const PikaCmdArgsType& argv,
   // Process Command
   c_ptr->Execute();
 
-  if (g_pika_conf->slowlog_slower_than() >= 0) {
-    int32_t start_time = start_us / 1000000;
-    int64_t duration = slash::NowMicros() - start_us;
-    if (duration > g_pika_conf->slowlog_slower_than()) {
-      g_pika_server->SlowlogPushEntry(argv, start_time, duration);
-      if (g_pika_conf->slowlog_write_errorlog()) {
-        std::string slow_log;
-        for (unsigned int i = 0; i < argv.size(); i++) {
-          slow_log.append(" ");
-          slow_log.append(slash::ToRead(argv[i]));
-          if (slow_log.size() >= 1000) {
-            slow_log.resize(1000);
-            slow_log.append("...\"");
-            break;
-          }
-        }
-        LOG(ERROR) << "ip_port: "<< ip_port() << ", command:" << slow_log << ", start_time(s): " << start_time << ", duration(us): " << duration;
-      }
-    }
-  }
-
-  if (opt == kCmdNameAuth) {
-    if (!auth_stat_.ChecknUpdate(c_ptr->res().raw_message())) {
-//      LOG(WARNING) << "(" << ip_port() << ")Wrong Password";
-    }
-  }
   return c_ptr->res().message();
 }
 

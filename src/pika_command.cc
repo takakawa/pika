@@ -51,11 +51,7 @@ std::string Cmd::current_key() const {
 }
 
 void Cmd::Execute() {
-  if (name_ == kCmdNameFlushdb) {
-    ProcessFlushDBCmd();
-  } else if (name_ == kCmdNameFlushall) {
-    ProcessFlushAllCmd();
-  } else if (name_ == kCmdNameInfo || name_ == kCmdNameConfig) {
+  if (name_ == kCmdNameInfo || name_ == kCmdNameConfig) {
     ProcessDoNotSpecifyPartitionCmd();
   } else if (is_single_partition() || g_pika_conf->classic_mode()) {
     ProcessSinglePartitionCmd();
@@ -66,40 +62,6 @@ void Cmd::Execute() {
   }
 }
 
-void Cmd::ProcessFlushDBCmd() {
-  std::shared_ptr<Table> table = g_pika_server->GetTable(table_name_);
-  if (!table) {
-    res_.SetRes(CmdRes::kInvalidTable);
-  } else {
-    if (table->IsKeyScaning()) {
-      res_.SetRes(CmdRes::kErrOther, "The keyscan operation is executing, Try again later");
-    } else {
-      slash::RWLock l_prw(&table->partitions_rw_, true);
-      for (const auto& partition_item : table->partitions_) {
-        partition_item.second->DoCommand(this);
-      }
-      res_.SetRes(CmdRes::kOk);
-    }
-  }
-}
-
-void Cmd::ProcessFlushAllCmd() {
-  slash::RWLock l_trw(&g_pika_server->tables_rw_, true);
-  for (const auto& table_item : g_pika_server->tables_) {
-    if (table_item.second->IsKeyScaning()) {
-      res_.SetRes(CmdRes::kErrOther, "The keyscan operation is executing, Try again later");
-      return;
-    }
-  }
-
-  for (const auto& table_item : g_pika_server->tables_) {
-    slash::RWLock l_prw(&table_item.second->partitions_rw_, true);
-    for (const auto& partition_item : table_item.second->partitions_) {
-      partition_item.second->DoCommand(this);
-    }
-  }
-  res_.SetRes(CmdRes::kOk);
-}
 
 void Cmd::ProcessSinglePartitionCmd() {
   std::shared_ptr<Partition> partition;

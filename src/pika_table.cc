@@ -41,7 +41,6 @@ Table::Table(const std::string& table_name,
 }
 
 Table::~Table() {
-  StopKeyScan();
   pthread_rwlock_destroy(&partitions_rw_);
   partitions_.clear();
 }
@@ -104,104 +103,6 @@ uint32_t Table::PartitionNum() {
   return partition_num_;
 }
 
-void Table::KeyScan() {
-  slash::MutexLock ml(&key_scan_protector_);
-  if (key_scan_info_.key_scaning_) {
-    return;
-  }
-
-  key_scan_info_.key_scaning_ = true;
-  key_scan_info_.duration = -2;       // duration -2 mean the task in waiting status,
-                                      // has not been scheduled for exec
-  BgTaskArg* bg_task_arg = new BgTaskArg();
-  bg_task_arg->table = shared_from_this();
-  g_pika_server->KeyScanTaskSchedule(&DoKeyScan, reinterpret_cast<void*>(bg_task_arg));
-}
-
-bool Table::IsKeyScaning() {
-  slash::MutexLock ml(&key_scan_protector_);
-  return key_scan_info_.key_scaning_;
-}
-
-#if 0
-void Table::RunKeyScan() {
-  rocksdb::Status s;
-  std::vector<blackwidow::KeyInfo> new_key_infos(5);
-
-  InitKeyScan();
-  slash::RWLock rwl(&partitions_rw_, false);
-  for (const auto& item : partitions_) {
-    std::vector<blackwidow::KeyInfo> tmp_key_infos;
-    s = item.second->db()->GetKeyNum(&tmp_key_infos);
-    if (s.ok()) {
-      for (size_t idx = 0; idx < tmp_key_infos.size(); ++idx) {
-        new_key_infos[idx].keys += tmp_key_infos[idx].keys;
-        new_key_infos[idx].expires += tmp_key_infos[idx].expires;
-        new_key_infos[idx].avg_ttl += tmp_key_infos[idx].avg_ttl;
-        new_key_infos[idx].invaild_keys += tmp_key_infos[idx].invaild_keys;
-      }
-    } else {
-      break;
-    }
-  }
-  key_scan_info_.duration = time(NULL) - key_scan_info_.start_time;
-
-  slash::MutexLock lm(&key_scan_protector_);
-  if (s.ok()) {
-    key_scan_info_.key_infos = new_key_infos;
-  }
-  key_scan_info_.key_scaning_ = false;
-}
-#endif
-
-void Table::StopKeyScan() {
-#if 0
-  slash::RWLock rwl(&partitions_rw_, false);
-  slash::MutexLock ml(&key_scan_protector_);
-  for (const auto& item : partitions_) {
-    item.second->db()->StopScanKeyNum();
-  }
-  key_scan_info_.key_scaning_ = false;
-#endif
-}
-#if 0
-void Table::ScanDatabase(const blackwidow::DataType& type) {
-  slash::RWLock rwl(&partitions_rw_, false);
-  for (const auto& item : partitions_) {
-    printf("\n\npartition name : %s\n", item.second->GetPartitionName().c_str());
-    item.second->db()->ScanDatabase(type);
-  }
-}
-#endif
-
-KeyScanInfo Table::GetKeyScanInfo() {
-  slash::MutexLock lm(&key_scan_protector_);
-  return key_scan_info_;
-}
-#if 0
-void Table::Compact(const blackwidow::DataType& type) {
-  slash::RWLock rwl(&partitions_rw_, true);
-  for (const auto& item : partitions_) {
-    item.second->Compact(type);
-  }
-}
-
-#endif
-void Table::DoKeyScan(void *arg) {
-#if 0
-  BgTaskArg* bg_task_arg = reinterpret_cast<BgTaskArg*>(arg);
-  bg_task_arg->table->RunKeyScan();
-  delete bg_task_arg;
-#endif
-}
-
-void Table::InitKeyScan() {
-  key_scan_info_.start_time = time(NULL);
-  char s_time[32];
-  int len = strftime(s_time, sizeof(s_time), "%Y-%m-%d %H:%M:%S", localtime(&key_scan_info_.start_time));
-  key_scan_info_.s_start_time.assign(s_time, len);
-  key_scan_info_.duration = -1;       // duration -1 mean the task in processing
-}
 
 void Table::LeaveAllPartition() {
   slash::RWLock rwl(&partitions_rw_, true);
