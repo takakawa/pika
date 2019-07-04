@@ -7,7 +7,6 @@
 
 #include "include/pika_kv.h"
 #include "include/pika_admin.h"
-#include "include/pika_pubsub.h"
 #include "include/pika_server.h"
 
 extern PikaServer* g_pika_server;
