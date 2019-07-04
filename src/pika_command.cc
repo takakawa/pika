@@ -51,9 +51,7 @@ std::string Cmd::current_key() const {
 }
 
 void Cmd::Execute() {
-  if (name_ == kCmdNameInfo || name_ == kCmdNameConfig) {
-    ProcessDoNotSpecifyPartitionCmd();
-  } else if (is_single_partition() || g_pika_conf->classic_mode()) {
+  if (is_single_partition() || g_pika_conf->classic_mode()) {
     ProcessSinglePartitionCmd();
   } else if (is_multi_partition()) {
     ProcessMultiPartitionCmd();

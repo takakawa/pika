@@ -50,17 +50,7 @@ struct StatisticData {
   uint64_t last_time_us;
 };
 
-static std::set<std::string> ShardingModeNotSupportCommands {kCmdNameDel,
-             kCmdNameMget,        kCmdNameKeys,              kCmdNameMset,
-             kCmdNameMsetnx,      kCmdNameExists,            kCmdNameScan,
-             kCmdNameScanx,       kCmdNamePKScanRange,       kCmdNamePKRScanRange,
-             kCmdNameRPopLPush,   kCmdNameZUnionstore,       kCmdNameZInterstore,
-             kCmdNameSUnion,      kCmdNameSUnionstore,       kCmdNameSInter,
-             kCmdNameSInterstore, kCmdNameSDiff,             kCmdNameSDiffstore,
-             kCmdNameSMove,       kCmdNameBitOp,             kCmdNamePfAdd,
-             kCmdNamePfCount,     kCmdNamePfMerge,           kCmdNameGeoAdd,
-             kCmdNameGeoPos,      kCmdNameGeoDist,           kCmdNameGeoHash,
-             kCmdNameGeoRadius,   kCmdNameGeoRadiusByMember};
+static std::set<std::string> ShardingModeNotSupportCommands {kCmdNameDel, kCmdNameSet};
 
 extern PikaConf *g_pika_conf;
 
@@ -110,7 +100,6 @@ class PikaServer {
   void InitTableStruct();
   bool RebuildTableStruct(const std::vector<TableStruct>& table_structs);
   std::shared_ptr<Table> GetTable(const std::string& table_name);
-  bool IsBgSaving();
   bool IsTableExist(const std::string& table_name);
   bool IsCommandSupport(const std::string& command);
   bool IsTableBinlogIoError(const std::string& table_name);
@@ -293,6 +282,7 @@ class PikaServer {
   bool loop_partition_state_machine_;
   bool force_full_sync_;
   pthread_rwlock_t state_protector_; //protect below, use for master-slave mode
+
 
   /*
    * Bgsave used

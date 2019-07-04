@@ -28,31 +28,13 @@ class PikaClientConn: public pink::RedisConn {
   int DealMessage(const pink::RedisCmdArgsType& argv, std::string* response);
   static void DoBackgroundTask(void* arg);
 
-  bool IsPubSub() { return is_pubsub_; }
-  void SetIsPubSub(bool is_pubsub) { is_pubsub_ = is_pubsub; }
 
  private:
   pink::ServerThread* const server_thread_;
   std::string current_table_;
-  bool is_pubsub_;
 
   std::string DoCmd(const PikaCmdArgsType& argv, const std::string& opt);
 
-  // Auth related
-  class AuthStat {
-   public:
-    void Init();
-    bool IsAuthed(const Cmd* const cmd_ptr);
-    bool ChecknUpdate(const std::string& arg);
-   private:
-    enum StatType {
-      kNoAuthed = 0,
-      kAdminAuthed,
-      kLimitAuthed,
-    };
-    StatType stat_;
-  };
-  AuthStat auth_stat_;
 };
 
 struct ClientInfo {

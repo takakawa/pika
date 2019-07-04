@@ -403,10 +403,6 @@ bool Partition::ChangeDb(const std::string& new_path) {
   return true;
 }
 
-bool Partition::IsBgSaving() {
-  slash::MutexLock ml(&bgsave_protector_);
-  return bgsave_info_.bgsaving;
-}
 
 void Partition::BgSavePartition() {
   slash::MutexLock l(&bgsave_protector_);

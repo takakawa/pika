@@ -18,21 +18,6 @@ extern PikaConf* g_pika_conf;
 extern PikaServer* g_pika_server;
 extern PikaCmdTableManager* g_pika_cmd_table_manager;
 
-static std::string ConstructPubSubResp(
-                                const std::string& cmd,
-                                const std::vector<std::pair<std::string, int>>& result) {
-  std::stringstream resp;
-  if (result.size() == 0) {
-    resp << "*3\r\n" << "$" << cmd.length() << "\r\n" << cmd << "\r\n" <<
-                        "$" << -1           << "\r\n" << ":" << 0      << "\r\n";
-  }
-  for (auto it = result.begin(); it != result.end(); it++) {
-    resp << "*3\r\n" << "$" << cmd.length()       << "\r\n" << cmd       << "\r\n" <<
-                        "$" << it->first.length() << "\r\n" << it->first << "\r\n" <<
-                        ":" << it->second         << "\r\n";
-  }
-  return resp.str();
-}
 
 PikaClientConn::PikaClientConn(int fd, std::string ip_port,
                                pink::Thread* thread,
@@ -40,9 +25,7 @@ PikaClientConn::PikaClientConn(int fd, std::string ip_port,
                                const pink::HandleType& handle_type)
       : RedisConn(fd, ip_port, thread, pink_epoll, handle_type),
         server_thread_(reinterpret_cast<pink::ServerThread*>(thread)),
-        current_table_(g_pika_conf->default_table()),
-        is_pubsub_(false) {
-  auth_stat_.Init();
+        current_table_(g_pika_conf->default_table()){
 }
 
 std::string PikaClientConn::DoCmd(const PikaCmdArgsType& argv,
@@ -146,51 +129,4 @@ void PikaClientConn::DoBackgroundTask(void* arg) {
   delete bg_arg;
 }
 
-// Initial permission status
-void PikaClientConn::AuthStat::Init() {
-  // Check auth required
-  stat_ = g_pika_conf->userpass() == "" ?
-    kLimitAuthed : kNoAuthed;
-  if (stat_ == kLimitAuthed 
-      && g_pika_conf->requirepass() == "") {
-    stat_ = kAdminAuthed;
-  }
-}
 
-// Check permission for current command
-bool PikaClientConn::AuthStat::IsAuthed(const Cmd* const cmd_ptr) {
-  std::string opt = cmd_ptr->name();
-  if (opt == kCmdNameAuth) {
-    return true;
-  }
-  const std::vector<std::string>& blacklist = g_pika_conf->vuser_blacklist();
-  switch (stat_) {
-    case kNoAuthed:
-      return false;
-    case kAdminAuthed:
-      break;
-    case kLimitAuthed:
-      if (cmd_ptr->is_admin_require()
-        || find(blacklist.begin(), blacklist.end(), opt) != blacklist.end()) {
-      return false;
-      }
-      break;
-    default:
-      LOG(WARNING) << "Invalid auth stat : " << static_cast<unsigned>(stat_);
-      return false;
-  }
-  return true;
-}
-
-// Update permission status
-bool PikaClientConn::AuthStat::ChecknUpdate(const std::string& message) {
-  // Situations to change auth status
-  if (message == "USER") {
-    stat_ = kLimitAuthed;
-  } else if (message == "ROOT") {
-    stat_ = kAdminAuthed;
-  } else {
-    return false;
-  }
-  return true;
-}
