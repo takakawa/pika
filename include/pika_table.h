@@ -13,24 +13,6 @@
 #include "include/pika_command.h"
 #include "include/pika_partition.h"
 
-/*
- *Keyscan used
- */
-struct KeyScanInfo {
-  time_t start_time;
-  std::string s_start_time;
-  int32_t duration;
-#if 0
-  std::vector<blackwidow::KeyInfo> key_infos; //the order is strings, hashes, lists, zsets, sets
-#endif
-  bool key_scaning_;
-  KeyScanInfo() :
-      start_time(0),
-      s_start_time("1970-01-01 08:00:00"),
-      duration(-3),
-      key_scaning_(false) {
-  }
-};
 
 class Table : public std::enable_shared_from_this<Table>{
  public:
@@ -46,19 +28,8 @@ class Table : public std::enable_shared_from_this<Table>{
   friend class PikaServer;
 
   std::string GetTableName();
-  void BgSaveTable();
-  bool FlushPartitionDB();
-  bool FlushPartitionSubDB(const std::string& db_name);
   bool IsBinlogIoError();
   uint32_t PartitionNum();
-
-  // KeyScan use;
-  void KeyScan();
-  bool IsKeyScaning();
-  void RunKeyScan();
-  void StopKeyScan();
-  KeyScanInfo GetKeyScanInfo();
-
 
   void LeaveAllPartition();
   std::shared_ptr<Partition> GetPartitionById(uint32_t partition_id);
@@ -74,13 +45,6 @@ class Table : public std::enable_shared_from_this<Table>{
   pthread_rwlock_t partitions_rw_;
   std::map<int32_t, std::shared_ptr<Partition>> partitions_;
 
-  /*
-   * KeyScan use
-   */
-  static void DoKeyScan(void *arg);
-  void InitKeyScan();
-  slash::Mutex key_scan_protector_;
-  KeyScanInfo key_scan_info_;
 
   /*
    * No allowed copy and copy assign

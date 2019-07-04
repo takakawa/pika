@@ -49,45 +49,7 @@ std::string Table::GetTableName() {
   return table_name_;
 }
 
-void Table::BgSaveTable() {
-  slash::RWLock l(&partitions_rw_, false);
-  for (const auto& item : partitions_) {
-    item.second->BgSavePartition();
-  }
-}
 
-#if 0
-void Table::CompactTable(const blackwidow::DataType& type) {
-  slash::RWLock l(&partitions_rw_, false);
-  for (const auto& item : partitions_) {
-    item.second->Compact(type);
-  }
-}
-#endif
-
-bool Table::FlushPartitionDB() {
-  slash::MutexLock ml(&key_scan_protector_);
-  if (key_scan_info_.key_scaning_) {
-    return false;
-  }
-  slash::RWLock rwl(&partitions_rw_, false);
-  for (const auto& item : partitions_) {
-    item.second->FlushDB();
-  }
-  return true;
-}
-
-bool Table::FlushPartitionSubDB(const std::string& db_name) {
-  slash::MutexLock ml(&key_scan_protector_);
-  if (key_scan_info_.key_scaning_) {
-    return false;
-  }
-  slash::RWLock rwl(&partitions_rw_, false);
-  for (const auto& item : partitions_) {
-    item.second->FlushSubDB(db_name);
-  }
-  return true;
-}
 
 bool Table::IsBinlogIoError() {
   slash::RWLock l(&partitions_rw_, false);
