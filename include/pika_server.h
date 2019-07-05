@@ -13,7 +13,6 @@
 #include "slash/include/slash_status.h"
 #include "pink/include/bg_thread.h"
 #include "pink/include/thread_pool.h"
-#include "pink/include/pink_pubsub.h"
 #if 0
 #include "blackwidow/blackwidow.h"
 #include "blackwidow/backupable.h"
@@ -24,7 +23,6 @@
 #include "include/pika_binlog.h"
 #include "include/pika_define.h"
 #include "include/pika_rsync_service.h"
-#include "include/pika_dispatch_thread.h"
 #include "include/pika_repl_client.h"
 #include "include/pika_repl_server.h"
 #include "include/pika_auxiliary_thread.h"
@@ -195,15 +193,6 @@ class PikaServer {
 
 
   /*
-   * Client used
-   */
-  void ClientKillAll();
-  int ClientKill(const std::string &ip_port);
-  int64_t ClientList(std::vector<ClientInfo> *clients = nullptr);
-
-
-
-  /*
    * Statistic used
    */
   void ResetStat();
@@ -262,13 +251,6 @@ class PikaServer {
    */
   bool have_scheduled_crontask_;
   struct timeval last_check_compact_time_;
-
-  /*
-   * Communicate with the client used
-   */
-  int worker_num_;
-  pink::ThreadPool* pika_thread_pool_;
-  PikaDispatchThread* pika_dispatch_thread_;
 
 
   /*

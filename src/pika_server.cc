@@ -22,7 +22,6 @@
 #include "pink/include/bg_thread.h"
 
 #include "include/pika_rm.h"
-#include "include/pika_dispatch_thread.h"
 
 extern PikaReplicaManager* g_pika_rm;
 
@@ -66,9 +65,10 @@ PikaServer::PikaServer() :
           PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP);
   pthread_rwlock_init(&tables_rw_, &tables_rw_attr);
 
-  // Create thread
+#if 0
   worker_num_ = std::min(g_pika_conf->thread_num(),
                          PIKA_MAX_WORKER_THREAD_NUM);
+#endif
 
   std::set<std::string> ips;
   if (g_pika_conf->network_interface().empty()) {
@@ -77,25 +77,27 @@ PikaServer::PikaServer() :
     ips.insert("127.0.0.1");
     ips.insert(host_);
   }
+#if 0
   // We estimate the queue size
   int worker_queue_limit = g_pika_conf->maxclients() / worker_num_ + 100;
   LOG(INFO) << "Worker queue limit is " << worker_queue_limit;
-  pika_dispatch_thread_ = new PikaDispatchThread(ips, port_, worker_num_, 3000,
-                                                 worker_queue_limit);
+#endif
   pika_rsync_service_ = new PikaRsyncService(g_pika_conf->db_sync_path(),
                                              g_pika_conf->port() + kPortShiftRSync);
   pika_auxiliary_thread_ = new PikaAuxiliaryThread();
-  pika_thread_pool_ = new pink::ThreadPool(g_pika_conf->thread_pool_size(), 100000);
+  //pika_thread_pool_ = new pink::ThreadPool(g_pika_conf->thread_pool_size(), 100000);
 
   pthread_rwlock_init(&state_protector_, NULL);
 }
 
 PikaServer::~PikaServer() {
 
+#if 0
   // DispatchThread will use queue of worker thread,
   // so we need to delete dispatch before worker.
   pika_thread_pool_->stop_thread_pool();
   delete pika_dispatch_thread_;
+#endif
 
   {
     slash::MutexLock l(&slave_mutex_);
@@ -108,7 +110,9 @@ PikaServer::~PikaServer() {
 
   delete pika_auxiliary_thread_;
   delete pika_rsync_service_;
+#if 0
   delete pika_thread_pool_;
+#endif
 
   bgsave_thread_.StopThread();
 
@@ -204,6 +208,7 @@ void PikaServer::Start() {
   InitTableStruct();
 
   int ret = 0;
+#if 0
   ret = pika_thread_pool_->start_thread_pool();
   if (ret != pink::kSuccess) {
     tables_.clear();
@@ -215,6 +220,7 @@ void PikaServer::Start() {
     LOG(FATAL) << "Start Dispatch Error: " << ret << (ret == pink::kBindError ? ": bind port " + std::to_string(port_) + " conflict"
             : ": other error") << ", Listen on this port to handle the connected redis client";
   }
+#endif
 
   ret = pika_auxiliary_thread_->StartThread();
   if (ret != pink::kSuccess) {
@@ -324,6 +330,7 @@ void PikaServer::SetForceFullSync(bool v) {
   force_full_sync_ = v;
 }
 
+#if 0
 void PikaServer::SetDispatchQueueLimit(int queue_limit) {
   rlimit limit;
   rlim_t maxfiles = g_pika_conf->maxclients() + PIKA_MIN_RESERVED_FDS;
@@ -341,7 +348,6 @@ void PikaServer::SetDispatchQueueLimit(int queue_limit) {
   }
   pika_dispatch_thread_->SetQueueLimit(queue_limit);
 }
-#if 0
 blackwidow::BlackwidowOptions PikaServer::bw_options() {
   return bw_options_;
 }
@@ -789,9 +795,11 @@ void PikaServer::SetLoopPartitionStateMachine(bool need_loop) {
   loop_partition_state_machine_ = need_loop;
 }
 
+#if 0
 void PikaServer::Schedule(pink::TaskFunc func, void* arg) {
   pika_thread_pool_->Schedule(func, arg);
 }
+#endif
 
 void PikaServer::BGSaveTaskSchedule(pink::TaskFunc func, void* arg) {
   bgsave_thread_.StartThread();
@@ -984,6 +992,7 @@ std::string PikaServer::DbSyncTaskIndex(const std::string& ip,
 }
 
 
+#if 0
 void PikaServer::ClientKillAll() {
   pika_dispatch_thread_->ClientKillAll();
 }
@@ -1001,6 +1010,7 @@ int64_t PikaServer::ClientList(std::vector<ClientInfo> *clients) {
   return clients_num;
 }
 
+#endif
 
 
 

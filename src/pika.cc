@@ -6,7 +6,9 @@
 #include <signal.h>
 #include <glog/logging.h>
 #include <sys/resource.h>
-
+#include <sys/types.h>
+#include <fcntl.h> 
+#include <unistd.h>
 #include "slash/include/env.h"
 #include "include/pika_rm.h"
 #include "include/pika_server.h"
