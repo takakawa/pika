@@ -83,7 +83,7 @@ void Cmd::ProcessMultiPartitionCmd() {
 void Cmd::ProcessDoNotSpecifyPartitionCmd() {
   Do();
 }
-
+#if 1
 bool Cmd::is_write() const {
   return ((flag_ & kCmdFlagsMaskRW) == kCmdFlagsWrite);
 }
@@ -98,6 +98,7 @@ bool Cmd::is_suspend() const {
 bool Cmd::is_admin_require() const {
   return ((flag_ & kCmdFlagsMaskAdminRequire) == kCmdFlagsAdminRequire);
 }
+#endif
 bool Cmd::is_single_partition() const {
   return ((flag_ & kCmdFlagsMaskPartition) == kCmdFlagsSinglePartition);
 }

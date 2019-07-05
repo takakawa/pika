@@ -22,6 +22,8 @@
 #include <gperftools/malloc_extension.h>
 #endif
 
+#include <thread>
+
 PikaConf* g_pika_conf;
 PikaServer* g_pika_server;
 PikaReplicaManager* g_pika_rm;
@@ -124,6 +126,26 @@ static void usage()
            );
 }
 
+
+void SimulateWriteCmd(){
+
+  while(1){
+
+	  PikaCmdArgsType argv = {"set","testkey","testv"};
+	  Cmd* c_ptr = g_pika_cmd_table_manager->GetCmd("set");
+
+	  // Initial
+	  c_ptr->Initial(argv, "table0");
+	  if (!c_ptr->res().ok()) {
+	    fprintf(stderr,c_ptr->res().message().data());
+	    exit(-1);
+	  }
+	  c_ptr->Execute();
+          std::this_thread::sleep_for (std::chrono::seconds(1));
+          printf("ttdb write binlog\n");
+  }
+}
+
 int main(int argc, char *argv[]) {
   if (argc != 2 && argc != 3) {
     usage();
@@ -176,11 +198,13 @@ int main(int argc, char *argv[]) {
     }
   }
 
+#if 0
   // daemonize if needed
   if (g_pika_conf->daemonize()) {
     daemonize();
     create_pid_file();
   }
+#endif
 
 
   PikaGlogInit();
@@ -194,7 +218,7 @@ int main(int argc, char *argv[]) {
   if (g_pika_conf->daemonize()) {
     close_std();
   }
-
+  std::thread ttdb(SimulateWriteCmd);
   g_pika_rm->Start();
   g_pika_server->Start();
   

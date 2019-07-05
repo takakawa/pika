@@ -18,6 +18,7 @@ void SetCmd::DoInitial() {
   key_ = argv_[1];
   value_ = argv_[2];
   condition_ = SetCmd::kNONE;
+#if 0
   sec_ = 0;
   size_t index = 3;
   while (index != argv_.size()) {
@@ -59,10 +60,12 @@ void SetCmd::DoInitial() {
     }
     index++;
   }
+#endif
   return;
 }
 
 void SetCmd::Do(std::shared_ptr<Partition> partition) {
+   printf("set cmd write binlog...\n");
 #if 0
   rocksdb::Status s;
   int32_t res = 1;
@@ -154,6 +157,7 @@ void DelCmd::DoInitial() {
 }
 
 void DelCmd::Do(std::shared_ptr<Partition> partition) {
+   printf("del cmd write binlog...\n");
 #if 0
   std::map<blackwidow::DataType, blackwidow::Status> type_status;
   int64_t count = partition->db()->Del(keys_, &type_status);
