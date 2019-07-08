@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <fcntl.h> 
 #include <unistd.h>
+#include <iostream>
 #include "slash/include/env.h"
 #include "include/pika_rm.h"
 #include "include/pika_server.h"
@@ -135,10 +136,13 @@ void SimulateWriteCmd(){
   std::string slaveof = g_pika_conf->slaveof(); 
   
   fprintf(stderr, " mode in %s\n",slaveof.data());
+  int i  = 0;
   while( slaveof.empty()){
 
           std::this_thread::sleep_for (std::chrono::seconds(1));
-	  PikaCmdArgsType argv = {"set","testkey","testv"};
+          char key[100] = {0 };
+          sprintf(key, "testkey%d",i++);
+	  PikaCmdArgsType argv = {"set",key,"testv"};
 	  Cmd* c_ptr = g_pika_cmd_table_manager->GetCmd("set");
 
 	  // Initial

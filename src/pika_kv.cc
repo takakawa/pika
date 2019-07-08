@@ -65,7 +65,7 @@ void SetCmd::DoInitial() {
 }
 
 void SetCmd::Do(std::shared_ptr<Partition> partition) {
-   printf("set cmd write binlog...\n");
+   printf("SetCmd write binlog..[%s]->[%s]\n",key_.data(),value_.data());
 #if 0
   rocksdb::Status s;
   int32_t res = 1;
