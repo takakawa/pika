@@ -1122,6 +1122,7 @@ Status PikaServer::SendPartitionTrySyncRequest(std::shared_ptr<Partition> partit
         << ",  Get partition binlog offset failed";
     return Status::Corruption("Partition get binlog offset error");
   }
+  LOG(INFO)<< "Send TrySync Request: " << boffset.filenum << ":"<< boffset.offset;
   std::string table_name = partition->GetTableName();
   uint32_t partition_id = partition->GetPartitionId();
   Status status = g_pika_rm->GetPikaReplClient()->SendPartitionTrySync(table_name, partition_id, boffset);
