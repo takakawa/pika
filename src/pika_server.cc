@@ -671,6 +671,7 @@ bool PikaServer::TryAddSlave(const std::string& ip, int64_t port, int fd,
                              const std::vector<TableStruct>& table_structs) {
   std::string ip_port = slash::IpPortString(ip, port);
 
+  LOG(INFO) << "AddSlave, ip_port: " << ip << ":" << port << ":" << ip_port;
   slash::MutexLock l(&slave_mutex_);
   std::vector<SlaveItem>::iterator iter = slaves_.begin();
   while (iter != slaves_.end()) {

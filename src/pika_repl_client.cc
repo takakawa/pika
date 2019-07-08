@@ -100,10 +100,10 @@ Status PikaReplClient::Close(const std::string& ip, const int port) {
 Status PikaReplClient::SendMetaSync() {
   LOG(INFO) << "SendMetaSync Start...";
 
-#if 0 
-  pink::PinkCli* cli = pink::NewRedisCli();
+#if 1 
+  pink::PinkCli* cli = pink::NewRedisCli();   // 此代码的功能仅仅是拿到当前使用的ip地址
   cli->set_connect_timeout(1500);
-  if ((cli->Connect(g_pika_server->master_ip(), g_pika_server->master_port(), "")).ok()) {
+  if ((cli->Connect(g_pika_server->master_ip(), g_pika_server->master_port() + kPortShiftReplServer, "")).ok()) {  // add kPortShiftReplServer by gaochuan
     struct sockaddr_in laddr;
     socklen_t llen = sizeof(laddr);
     getsockname(cli->fd(), (struct sockaddr*) &laddr, &llen);
@@ -114,7 +114,7 @@ Status PikaReplClient::SendMetaSync() {
     delete cli;
   } else {
     LOG(WARNING) << "Failed to connect master, Master ("
-      << g_pika_server->master_ip() << ":" << g_pika_server->master_port() << "), try reconnect";
+      << g_pika_server->master_ip() << ":" << g_pika_server->master_port()+ kPortShiftReplServer << "), try reconnect"; // add kPortShiftReplServer by gaochuan
     // Sleep three seconds to avoid frequent try Meta Sync
     // when the connection fails
     sleep(3);

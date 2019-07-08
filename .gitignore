@@ -50,5 +50,7 @@ src/build_version.cc
 
 master/
 slave/
+slave2/
 startmaster.sh
 startslave.sh
+startslave2.sh
