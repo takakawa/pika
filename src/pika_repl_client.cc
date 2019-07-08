@@ -98,6 +98,9 @@ Status PikaReplClient::Close(const std::string& ip, const int port) {
 }
 
 Status PikaReplClient::SendMetaSync() {
+  LOG(INFO) << "SendMetaSync Start...";
+
+#if 0 
   pink::PinkCli* cli = pink::NewRedisCli();
   cli->set_connect_timeout(1500);
   if ((cli->Connect(g_pika_server->master_ip(), g_pika_server->master_port(), "")).ok()) {
@@ -119,6 +122,7 @@ Status PikaReplClient::SendMetaSync() {
     delete cli;
     return Status::Corruption("Connect master error");
   }
+#endif
 
   InnerMessage::InnerRequest request;
   request.set_type(InnerMessage::kMetaSync);
@@ -140,7 +144,7 @@ Status PikaReplClient::SendMetaSync() {
       << master_ip << ":" << master_port << ")";
     return Status::Corruption("Serialize Failed");
   }
-
+  LOG(INFO) <<"|"<< to_send<<"|";
   LOG(INFO) << "Try Send Meta Sync Request to Master ("
     << master_ip << ":" << master_port << ")";
   return client_thread_->Write(master_ip, master_port + kPortShiftReplServer, to_send);

@@ -132,7 +132,10 @@ static void usage()
 
 void SimulateWriteCmd(){
 
-  while(1){
+  std::string slaveof = g_pika_conf->slaveof(); 
+  
+  fprintf(stderr, " mode in %s\n",slaveof.data());
+  while( slaveof.empty()){
 
           std::this_thread::sleep_for (std::chrono::seconds(1));
 	  PikaCmdArgsType argv = {"set","testkey","testv"};

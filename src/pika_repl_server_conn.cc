@@ -24,6 +24,8 @@ PikaReplServerConn::~PikaReplServerConn() {
 }
 
 void PikaReplServerConn::HandleMetaSyncRequest(void* arg) {
+
+  LOG(INFO) << "Process MetaSync request start...";
   ReplServerTaskArg* task_arg = static_cast<ReplServerTaskArg*>(arg);
   const std::shared_ptr<InnerMessage::InnerRequest> req = task_arg->req;
   std::shared_ptr<pink::PbConn> conn = task_arg->conn;
@@ -72,6 +74,7 @@ void PikaReplServerConn::HandleMetaSyncRequest(void* arg) {
 }
 
 void PikaReplServerConn::HandleTrySyncRequest(void* arg) {
+  LOG(INFO) << "Process TrySync request start...";
   ReplServerTaskArg* task_arg = static_cast<ReplServerTaskArg*>(arg);
   const std::shared_ptr<InnerMessage::InnerRequest> req = task_arg->req;
   std::shared_ptr<pink::PbConn> conn = task_arg->conn;
@@ -172,6 +175,7 @@ void PikaReplServerConn::HandleTrySyncRequest(void* arg) {
 }
 
 void PikaReplServerConn::HandleDBSyncRequest(void* arg) {
+  LOG(INFO) << "Process DBSync request start...";
   ReplServerTaskArg* task_arg = static_cast<ReplServerTaskArg*>(arg);
   const std::shared_ptr<InnerMessage::InnerRequest> req = task_arg->req;
   std::shared_ptr<pink::PbConn> conn = task_arg->conn;
@@ -245,6 +249,7 @@ void PikaReplServerConn::HandleDBSyncRequest(void* arg) {
 }
 
 void PikaReplServerConn::HandleBinlogSyncRequest(void* arg) {
+  LOG(INFO) << "Process BinlogSync request start...";
   ReplServerTaskArg* task_arg = static_cast<ReplServerTaskArg*>(arg);
   const std::shared_ptr<InnerMessage::InnerRequest> req = task_arg->req;
   std::shared_ptr<pink::PbConn> conn = task_arg->conn;
