@@ -4,7 +4,7 @@
 // of patent rights can be found in the PATENTS file in the same directory.
 
 #include "include/pika_kv.h"
-
+#include <thread>
 #include "slash/include/slash_string.h"
 
 #include "include/pika_binlog_transverter.h"
@@ -65,7 +65,8 @@ void SetCmd::DoInitial() {
 }
 
 void SetCmd::Do(std::shared_ptr<Partition> partition) {
-   printf("SetCmd write binlog..[%s]->[%s]\n",key_.data(),value_.data());
+//   printf("[%]SetCmd write binlog..[%s]->[%s]\n",key_.data(),value_.data());
+   std::cout << std::this_thread::get_id() << " | " << "SetCmd write binlog. " << key_ << " -> " << value_<< std::endl;
 #if 0
   rocksdb::Status s;
   int32_t res = 1;

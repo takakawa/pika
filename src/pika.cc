@@ -139,7 +139,7 @@ void SimulateWriteCmd(){
   int i  = 0;
   while( slaveof.empty()){
 
-          std::this_thread::sleep_for (std::chrono::seconds(1));
+          std::this_thread::sleep_for (std::chrono::milliseconds(100));
           char key[100] = {0 };
           sprintf(key, "testkey%d",i++);
 	  PikaCmdArgsType argv = {"set",key,"testv"};
