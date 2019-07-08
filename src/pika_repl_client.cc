@@ -131,10 +131,12 @@ Status PikaReplClient::SendMetaSync() {
   node->set_ip(local_ip_);
   node->set_port(local_port_);
 
+#if 1
   std::string masterauth = g_pika_conf->masterauth();
   if (!masterauth.empty()) {
     meta_sync->set_auth(masterauth);
   }
+#endif
 
   std::string to_send;
   std::string master_ip = g_pika_server->master_ip();

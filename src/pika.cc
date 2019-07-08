@@ -55,9 +55,7 @@ static void PikaGlogInit() {
     slash::CreatePath(g_pika_conf->log_path()); 
   }
 
-  if (!g_pika_conf->daemonize()) {
-    FLAGS_alsologtostderr = true;
-  }
+  FLAGS_alsologtostderr = true;
   FLAGS_log_dir = g_pika_conf->log_path();
   FLAGS_minloglevel = 0;
   FLAGS_max_log_size = 1800;
@@ -141,8 +139,10 @@ void SimulateWriteCmd(){
 
           std::this_thread::sleep_for (std::chrono::milliseconds(100));
           char key[100] = {0 };
-          sprintf(key, "testkey%d",i++);
-	  PikaCmdArgsType argv = {"set",key,"testv"};
+          sprintf(key, "testkey%d",i);
+          char val[100] = {0 };
+          sprintf(val, "testv%d",i++);
+	  PikaCmdArgsType argv = {"set",key,val};
 	  Cmd* c_ptr = g_pika_cmd_table_manager->GetCmd("set");
 
 	  // Initial
@@ -193,30 +193,6 @@ int main(int argc, char *argv[]) {
 #endif
   PikaConfInit(path);
 
-  rlimit limit;
-  rlim_t maxfiles = g_pika_conf->maxclients() + PIKA_MIN_RESERVED_FDS;
-  if (getrlimit(RLIMIT_NOFILE, &limit) == -1) {
-    LOG(WARNING) << "getrlimit error: " << strerror(errno);
-  } else if (limit.rlim_cur < maxfiles) {
-    rlim_t old_limit = limit.rlim_cur;
-    limit.rlim_cur = maxfiles;
-    limit.rlim_max = maxfiles;
-    if (setrlimit(RLIMIT_NOFILE, &limit) != -1) {
-      LOG(WARNING) << "your 'limit -n ' of " << old_limit << " is not enough for Redis to start. pika have successfully reconfig it to " << limit.rlim_cur;
-    } else {
-      LOG(FATAL) << "your 'limit -n ' of " << old_limit << " is not enough for Redis to start. pika can not reconfig it(" << strerror(errno) << "), do it by yourself";
-    }
-  }
-
-#if 0
-  // daemonize if needed
-  if (g_pika_conf->daemonize()) {
-    daemonize();
-    create_pid_file();
-  }
-#endif
-
-
   PikaGlogInit();
   PikaSignalSetup();
 
@@ -225,16 +201,15 @@ int main(int argc, char *argv[]) {
   g_pika_rm = new PikaReplicaManager();
   g_pika_cmd_table_manager = new PikaCmdTableManager();
 
-  if (g_pika_conf->daemonize()) {
-    close_std();
-  }
   std::thread ttdb(SimulateWriteCmd);
   g_pika_rm->Start();
   g_pika_server->Start();
   
+#if 0
   if (g_pika_conf->daemonize()) {
     unlink(g_pika_conf->pidfile().c_str());
   }
+#endif
 
   // stop PikaReplicaManager first，avoid internal threads
   // may references to dead PikaServer

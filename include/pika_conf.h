@@ -38,18 +38,22 @@ class PikaConf : public slash::BaseConf {
   std::string slaveof()                             { RWLock l(&rwlock_, false); return slaveof_;}
   int slave_priority()                              { RWLock l(&rwlock_, false); return slave_priority_;}
   bool write_binlog()                               { RWLock l(&rwlock_, false); return write_binlog_;}
+#if 0
   int thread_num()                                  { RWLock l(&rwlock_, false); return thread_num_; }
   int thread_pool_size()                            { RWLock l(&rwlock_, false); return thread_pool_size_; }
+#endif
   int sync_thread_num()                             { RWLock l(&rwlock_, false); return sync_thread_num_; }
   std::string log_path()                            { RWLock l(&rwlock_, false); return log_path_; }
   std::string db_path()                             { RWLock l(&rwlock_, false); return db_path_; }
   std::string trash_path()                          { RWLock l(&rwlock_, false); return trash_path_; }
   std::string db_sync_path()                        { RWLock l(&rwlock_, false); return db_sync_path_; }
   int db_sync_speed()                               { RWLock l(&rwlock_, false); return db_sync_speed_; }
+#if 0
   std::string compact_cron()                        { RWLock l(&rwlock_, false); return compact_cron_; }
   std::string compact_interval()                    { RWLock l(&rwlock_, false); return compact_interval_; }
   int64_t write_buffer_size()                       { RWLock l(&rwlock_, false); return write_buffer_size_; }
   int64_t max_write_buffer_size()                   { RWLock l(&rwlock_, false); return max_write_buffer_size_; }
+#endif
   int timeout()                                     { RWLock l(&rwlock_, false); return timeout_; }
   std::string server_id()                           { RWLock l(&rwlock_, false); return server_id_; }
   std::string requirepass()                         { RWLock l(&rwlock_, false); return requirepass_; }
@@ -64,6 +68,7 @@ class PikaConf : public slash::BaseConf {
   int databases()                                   { RWLock l(&rwlock_, false); return databases_;}
   const std::vector<TableStruct>& table_structs()   { RWLock l(&rwlock_, false); return table_structs_; }
   std::string default_table()                       { RWLock l(&rwlock_, false); return default_table_;}
+#if 0
   std::string compression()                         { RWLock l(&rwlock_, false); return compression_; }
   int target_file_size_base()                       { RWLock l(&rwlock_, false); return target_file_size_base_; }
   int max_cache_statistic_keys()                    { RWLock l(&rwlock_, false); return max_cache_statistic_keys_;}
@@ -78,20 +83,25 @@ class PikaConf : public slash::BaseConf {
   bool cache_index_and_filter_blocks()              { RWLock l(&rwlock_, false); return cache_index_and_filter_blocks_; }
   bool optimize_filters_for_hits()                  { RWLock l(&rwlock_, false); return optimize_filters_for_hits_; }
   bool level_compaction_dynamic_level_bytes()       { RWLock l(&rwlock_, false); return level_compaction_dynamic_level_bytes_; }
+#endif
   int expire_logs_nums()                            { RWLock l(&rwlock_, false); return expire_logs_nums_; }
   int expire_logs_days()                            { RWLock l(&rwlock_, false); return expire_logs_days_; }
   std::string conf_path()                           { RWLock l(&rwlock_, false); return conf_path_; }
   bool slave_read_only()                            { RWLock l(&rwlock_, false); return slave_read_only_; }
+#if 0
   int maxclients()                                  { RWLock l(&rwlock_, false); return maxclients_; }
   int root_connection_num()                         { RWLock l(&rwlock_, false); return root_connection_num_; }
   bool slowlog_write_errorlog()                     { RWLock l(&rwlock_, false); return slowlog_write_errorlog_;}
   int slowlog_slower_than()                         { RWLock l(&rwlock_, false); return slowlog_log_slower_than_; }
   int slowlog_max_len()                             { RWLock L(&rwlock_, false); return slowlog_max_len_; }
+#endif
   std::string network_interface()                   { RWLock l(&rwlock_, false); return network_interface_; }
 
+#if 0
   // Immutable config items, we don't use lock.
   bool daemonize()                                  { return daemonize_; }
   std::string pidfile()                             { return pidfile_; }
+#endif
   int binlog_file_size()                            { return binlog_file_size_; }
 
   // Setter

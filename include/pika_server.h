@@ -228,7 +228,9 @@ class PikaServer {
    * TimingTask use
    */
   void DoTimingTask();
+#if 0
   void AutoCompactRange();
+#endif
   void AutoPurge();
   void AutoDeleteExpiredDump();
   void AutoKeepAliveRSync();

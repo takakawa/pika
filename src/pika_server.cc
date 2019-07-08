@@ -1161,7 +1161,9 @@ Status PikaServer::SendRemoveSlaveNodeRequest(const std::string& table,
 
 void PikaServer::DoTimingTask() {
   // Maybe schedule compactrange
+#if 0
   AutoCompactRange();
+#endif
   // Purge log
   AutoPurge();
   // Delete expired dump
@@ -1170,6 +1172,7 @@ void PikaServer::DoTimingTask() {
   AutoKeepAliveRSync();
 }
 
+#if 0
 void PikaServer::AutoCompactRange() {
   struct statfs disk_info;
   int ret = statfs(g_pika_conf->db_path().c_str(), &disk_info);
@@ -1251,7 +1254,7 @@ void PikaServer::AutoCompactRange() {
     }
   }
 }
-
+#endif
 void PikaServer::AutoPurge() {
   DoSameThingEveryPartition(TaskType::kPurgeLog);
 }
