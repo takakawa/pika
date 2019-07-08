@@ -64,10 +64,12 @@ static void PikaGlogInit() {
   ::google::InitGoogleLogging("pika");
 }
 
+#if 0
 static void daemonize() {
   if (fork() != 0) exit(0); /* parent exits */
   setsid(); /* create a new session */
 }
+#endif
 
 static void close_std() {
   int fd;
@@ -78,7 +80,7 @@ static void close_std() {
     close(fd);
   }
 }
-
+#if 0
 static void create_pid_file(void) {
   /* Try to write the pid file in a best-effort way. */
   std::string path(g_pika_conf->pidfile());
@@ -97,6 +99,7 @@ static void create_pid_file(void) {
     fclose(fp);
   }
 }
+#endif
 
 static void IntSigHandle(const int sig) {
   LOG(INFO) << "Catch Signal " << sig << ", cleanup...";
@@ -131,17 +134,17 @@ void SimulateWriteCmd(){
 
   while(1){
 
+          std::this_thread::sleep_for (std::chrono::seconds(1));
 	  PikaCmdArgsType argv = {"set","testkey","testv"};
 	  Cmd* c_ptr = g_pika_cmd_table_manager->GetCmd("set");
 
 	  // Initial
-	  c_ptr->Initial(argv, "table0");
+	  c_ptr->Initial(argv, "db0");
 	  if (!c_ptr->res().ok()) {
 	    fprintf(stderr,c_ptr->res().message().data());
 	    exit(-1);
 	  }
 	  c_ptr->Execute();
-          std::this_thread::sleep_for (std::chrono::seconds(1));
           printf("ttdb write binlog\n");
   }
 }

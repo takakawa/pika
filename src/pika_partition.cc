@@ -89,6 +89,8 @@ Partition::Partition(const std::string& table_name,
   assert(db_);
   assert(s.ok());
 #endif
+
+  opened_ =  true ; // 因为不使用blackwidow,不用处理低层存储，这里直接设置opened_标示 ,by gaochuan
   LOG(INFO) << partition_name_ << " DB Success";
 
   logger_ = std::shared_ptr<Binlog>(

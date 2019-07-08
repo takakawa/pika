@@ -212,10 +212,13 @@ void PikaReplBgWorker::HandleBGWorkerWriteDB(void* arg) {
     return;
   }
 
+#if 0
   uint64_t start_us = 0;
   if (g_pika_conf->slowlog_slower_than() >= 0) {
     start_us = slash::NowMicros();
   }
+#endif
+
   std::shared_ptr<Partition> partition = g_pika_server->GetTablePartitionById(table_name, partition_id);
   // Add read lock for no suspend command
   if (!c_ptr->is_suspend()) {
