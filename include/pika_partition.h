@@ -93,7 +93,7 @@ class Partition : public std::enable_shared_from_this<Partition> {
   void MoveToTrash();
 
   // BgSave use;
-  bool IsBgSaving();
+  // bool IsBgSaving();
   void BgSavePartition();
   BgSaveInfo bgsave_info();
 

@@ -26,14 +26,6 @@ const std::string kPikaPidFile = "pika.pid";
 const std::string kPikaSecretFile = "rsync.secret";
 const std::string kDefaultRsyncAuth = "default";
 
-struct WorkerCronTask {
-  int task;
-  std::string ip_port;
-};
-typedef WorkerCronTask MonitorCronTask;
-//task define
-#define TASK_KILL 0
-#define TASK_KILLALL 1
 
 //slave item
 struct SlaveItem {
@@ -280,17 +272,6 @@ struct WriteTask {
   }
 };
 
-//slowlog define
-#define SLOWLOG_ENTRY_MAX_ARGC 32
-#define SLOWLOG_ENTRY_MAX_STRING 128
-
-//slowlog entry
-struct SlowlogEntry {
-  int64_t id;
-  int64_t start_time;
-  int64_t duration;
-  pink::RedisCmdArgsType argv;
-};
 
 #define PIKA_MIN_RESERVED_FDS 5000
 

@@ -6,9 +6,6 @@
 #ifndef PIKA_TABLE_H_
 #define PIKA_TABLE_H_
 
-#if 0
-#include "blackwidow/blackwidow.h"
-#endif
 
 #include "include/pika_command.h"
 #include "include/pika_partition.h"
@@ -24,7 +21,6 @@ class Table : public std::enable_shared_from_this<Table>{
   virtual ~Table();
 
   friend class Cmd;
-  friend class InfoCmd;
   friend class PikaServer;
 
   std::string GetTableName();

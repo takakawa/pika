@@ -1015,17 +1015,21 @@ int64_t PikaServer::ClientList(std::vector<ClientInfo> *clients) {
 
 
 
+#if 0
 void PikaServer::ResetStat() {
   statistic_data_.accumulative_connections.store(0);
   slash::WriteLock l(&statistic_data_.statistic_lock);
   statistic_data_.thread_querynum = 0;
   statistic_data_.last_thread_querynum = 0;
 }
+#endif
 
+#if 0
 uint64_t PikaServer::ServerQueryNum() {
   slash::ReadLock l(&statistic_data_.statistic_lock);
   return statistic_data_.thread_querynum;
 }
+
 
 uint64_t PikaServer::ServerCurrentQps() {
   slash::ReadLock l(&statistic_data_.statistic_lock);
@@ -1036,10 +1040,15 @@ uint64_t PikaServer::accumulative_connections() {
   return statistic_data_.accumulative_connections;
 }
 
+#endif
+
+#if 0
 void PikaServer::incr_accumulative_connections() {
   ++statistic_data_.accumulative_connections;
 }
+#endif
 
+#if 0
 void PikaServer::ResetLastSecQuerynum() {
  slash::WriteLock l(&statistic_data_.statistic_lock);
  uint64_t cur_time_us = slash::NowMicros();
@@ -1050,6 +1059,8 @@ void PikaServer::ResetLastSecQuerynum() {
  statistic_data_.last_time_us = cur_time_us;
 }
 
+#endif
+#if 0
 void PikaServer::UpdateQueryNumAndExecCountTable(const std::string& command) {
   std::string cmd(command);
   statistic_data_.statistic_lock.WriteLock();
@@ -1058,11 +1069,14 @@ void PikaServer::UpdateQueryNumAndExecCountTable(const std::string& command) {
   statistic_data_.statistic_lock.WriteUnlock();
 }
 
+#endif
+#if 0
 std::unordered_map<std::string, uint64_t> PikaServer::ServerExecCountTable() {
   slash::ReadLock l(&statistic_data_.statistic_lock);
   return statistic_data_.exec_count_table;
 }
 
+#endif
 int PikaServer::SendToPeer() {
   return g_pika_rm->ConsumeWriteQueue();
 }

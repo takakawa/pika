@@ -13,10 +13,6 @@
 #include "slash/include/slash_status.h"
 #include "pink/include/bg_thread.h"
 #include "pink/include/thread_pool.h"
-#if 0
-#include "blackwidow/blackwidow.h"
-#include "blackwidow/backupable.h"
-#endif
 
 #include "include/pika_conf.h"
 #include "include/pika_table.h"
@@ -30,23 +26,6 @@
 using slash::Status;
 using slash::Slice;
 
-struct StatisticData {
-  StatisticData()
-      : accumulative_connections(0),
-        thread_querynum(0),
-        last_thread_querynum(0),
-        last_sec_thread_querynum(0),
-        last_time_us(0) {
-  }
-
-  slash::RWMutex statistic_lock;
-  std::atomic<uint64_t> accumulative_connections;
-  std::unordered_map<std::string, uint64_t> exec_count_table;
-  uint64_t thread_querynum;
-  uint64_t last_thread_querynum;
-  uint64_t last_sec_thread_querynum;
-  uint64_t last_time_us;
-};
 
 static std::set<std::string> ShardingModeNotSupportCommands {kCmdNameDel, kCmdNameSet};
 
@@ -192,6 +171,7 @@ class PikaServer {
                               uint32_t partition_id);
 
 
+#if 0
   /*
    * Statistic used
    */
@@ -203,6 +183,7 @@ class PikaServer {
   void ResetLastSecQuerynum();
   void UpdateQueryNumAndExecCountTable(const std::string& command);
   std::unordered_map<std::string, uint64_t> ServerExecCountTable();
+#endif
 
   /*
    * Slave to Master communication used
@@ -220,7 +201,6 @@ class PikaServer {
 
 
   friend class Cmd;
-  friend class InfoCmd;
   friend class PikaReplClientConn;
 
  private:
@@ -296,11 +276,6 @@ class PikaServer {
    */
   PikaAuxiliaryThread* pika_auxiliary_thread_;
 
-
-  /*
-   * Statistic used
-   */
-  StatisticData statistic_data_;
 
   PikaServer(PikaServer &ps);
   void operator =(const PikaServer &ps);

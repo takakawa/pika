@@ -154,7 +154,7 @@ void PikaReplBgWorker::HandleBGWorkerWriteBinlog(void* arg) {
 int PikaReplBgWorker::HandleWriteBinlog(pink::RedisParser* parser, const pink::RedisCmdArgsType& argv) {
   PikaReplBgWorker* worker = static_cast<PikaReplBgWorker*>(parser->data);
   const BinlogItem& binlog_item = worker->binlog_item_;
-  g_pika_server->UpdateQueryNumAndExecCountTable(argv[0]);
+  //g_pika_server->UpdateQueryNumAndExecCountTable(argv[0]);
 
 
   std::string opt = argv[0];
