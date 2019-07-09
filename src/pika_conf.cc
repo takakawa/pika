@@ -34,6 +34,7 @@ int PikaConf::Load()
   GetConfStr("requirepass", &requirepass_);
   GetConfStr("masterauth", &masterauth_);
   GetConfStr("userpass", &userpass_);
+#if 0
   GetConfInt("maxclients", &maxclients_);
   if (maxclients_ <= 0) {
     maxclients_ = 20000;
@@ -52,6 +53,7 @@ int PikaConf::Load()
   if (slowlog_max_len_ == 0) {
     slowlog_max_len_ = 128;
   }
+#endif
   std::string user_blacklist;
   GetConfStr("userblacklist", &user_blacklist);
   slash::StringSplit(user_blacklist, COMMA, user_blacklist_);
@@ -111,7 +113,9 @@ int PikaConf::Load()
   if (expire_logs_days_ <= 0 ) {
       expire_logs_days_ = 1;
   }
+#if 0
   GetConfStr("compression", &compression_);
+#endif
   // set slave read only true as default
   slave_read_only_ = true;
   GetConfInt("slave-priority", &slave_priority_);
@@ -131,7 +135,7 @@ int PikaConf::Load()
     db_path_ += "/";
   }
   trash_path_ = db_path_ + "trash/";
-
+#if 0
   GetConfInt("thread-num", &thread_num_);
   if (thread_num_ <= 0) {
     thread_num_ = 12;
@@ -146,6 +150,7 @@ int PikaConf::Load()
   if (thread_pool_size_ > 24) {
     thread_pool_size_ = 24;
   }
+#endif
   GetConfInt("sync-thread-num", &sync_thread_num_);
   if (sync_thread_num_ <= 0) {
     sync_thread_num_ = 3;
@@ -153,7 +158,7 @@ int PikaConf::Load()
   if (sync_thread_num_ > 24) {
     sync_thread_num_ = 24;
   }
-
+#if 0
   compact_cron_ = "";
   GetConfStr("compact-cron", &compact_cron_);
   if (compact_cron_ != "") {
@@ -290,12 +295,15 @@ int PikaConf::Load()
   std::string lcdlb;
   GetConfStr("level-compaction-dynamic-level-bytes", &lcdlb);
   level_compaction_dynamic_level_bytes_ = (lcdlb == "yes") ? true : false;
+#endif
 
+#if 0
   // daemonize
   std::string dmz;
   GetConfStr("daemonize", &dmz);
   daemonize_ =  (dmz == "yes") ? true : false;
 
+#endif
   // binlog
   std::string wb;
   GetConfStr("write-binlog", &wb);
@@ -332,7 +340,7 @@ void PikaConf::TryPushDiffCommands(const std::string& command, const std::string
     diff_commands_[command] = value;
   }
 }
-
+#if 0
 int PikaConf::ConfigRewrite() {
   {
   RWLock l(&rwlock_, false);
@@ -409,3 +417,4 @@ int PikaConf::ConfigRewrite() {
   }
   return WriteBack();
 }
+#endif

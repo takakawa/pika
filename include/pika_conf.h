@@ -109,19 +109,23 @@ class PikaConf : public slash::BaseConf {
     RWLock l(&rwlock_, true);
     port_ = value;
   }
+#if 0
   void SetThreadNum(const int value) {
     RWLock l(&rwlock_, true);
     thread_num_ = value;
   }
+#endif
   void SetTimeout(const int value) {
     RWLock l(&rwlock_, true);
     TryPushDiffCommands("timeout", std::to_string(value));
     timeout_ = value;
   }
+#if 0
   void SetThreadPoolSize(const int value) {
     RWLock l(&rwlock_, true);
     thread_pool_size_ = value;
   }
+#endif
   void SetSlaveof(const std::string value) {
     RWLock l(&rwlock_, true);
     TryPushDiffCommands("slaveof", value);
@@ -137,6 +141,7 @@ class PikaConf : public slash::BaseConf {
     TryPushDiffCommands("write-binlog", value);
     write_binlog_ = (value == "yes") ? true : false;
   }
+#if 0
   void SetMaxCacheStatisticKeys(const int value) {
     RWLock l(&rwlock_, true);
     TryPushDiffCommands("max-cache-statistic-keys", std::to_string(value));
@@ -147,6 +152,7 @@ class PikaConf : public slash::BaseConf {
     TryPushDiffCommands("small-compaction-threshold", std::to_string(value));
     small_compaction_threshold_ = value;
   }
+#endif
   void SetBgsavePath(const std::string &value) {
     RWLock l(&rwlock_, true);
     bgsave_path_ = value;
@@ -205,6 +211,7 @@ class PikaConf : public slash::BaseConf {
     TryPushDiffCommands("expire-logs-days", std::to_string(value));
     expire_logs_days_ = value;
   }
+#if 0
   void SetMaxConnection(const int value) {
     RWLock l(&rwlock_, true);
     TryPushDiffCommands("maxclients", std::to_string(value));
@@ -230,11 +237,13 @@ class PikaConf : public slash::BaseConf {
     TryPushDiffCommands("slowlog-max-len", std::to_string(value));
     slowlog_max_len_ = value;
   }
+#endif
   void SetDbSyncSpeed(const int value) {
     RWLock l(&rwlock_, true);
     TryPushDiffCommands("db-sync-speed", std::to_string(value));
     db_sync_speed_ = value;
   }
+#if 0
   void SetCompactCron(const std::string &value) {
     RWLock l(&rwlock_, true);
     TryPushDiffCommands("compact-cron", value);
@@ -245,16 +254,21 @@ class PikaConf : public slash::BaseConf {
     TryPushDiffCommands("compact-interval", value);
     compact_interval_ = value;
   }
+#endif
 
   int Load();
+#if 0
   int ConfigRewrite();
+#endif
 
  private:
   int port_;
   std::string slaveof_;
   int slave_priority_;
+#if 0
   int thread_num_;
   int thread_pool_size_;
+#endif
   int sync_thread_num_;
   std::string log_path_;
   std::string db_path_;
@@ -262,11 +276,13 @@ class PikaConf : public slash::BaseConf {
   std::string trash_path_;
   int expire_dump_days_;
   int db_sync_speed_;
+#if 0
   std::string compact_cron_;
   std::string compact_interval_;
   int64_t write_buffer_size_;
   int64_t max_write_buffer_size_;
   bool daemonize_;
+#endif
   int timeout_;
   std::string server_id_;
   std::string requirepass_;
@@ -280,17 +296,19 @@ class PikaConf : public slash::BaseConf {
   std::string bgsave_path_;
   std::string bgsave_prefix_;
   std::string pidfile_;
-
+#if 0
   std::string compression_;
   int maxclients_;
   int root_connection_num_;
   bool slowlog_write_errorlog_;
   int slowlog_log_slower_than_;
   int slowlog_max_len_;
+#endif
   int expire_logs_days_;
   int expire_logs_nums_;
   bool slave_read_only_;
   std::string conf_path_;
+#if 0
   int max_cache_statistic_keys_;
   int small_compaction_threshold_;
   int max_background_flushes_;
@@ -303,6 +321,7 @@ class PikaConf : public slash::BaseConf {
   bool cache_index_and_filter_blocks_;
   bool optimize_filters_for_hits_;
   bool level_compaction_dynamic_level_bytes_;
+#endif
 
   std::string network_interface_;
 
