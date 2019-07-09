@@ -97,9 +97,11 @@ class Partition : public std::enable_shared_from_this<Partition> {
   void BgSavePartition();
   BgSaveInfo bgsave_info();
 
+#if 0
   // FlushDB & FlushSubDB use
   bool FlushDB();
   bool FlushSubDB(const std::string& db_name);
+#endif
 
   // Purgelogs use
   bool PurgeLogs(uint32_t to = 0, bool manual = false);

@@ -533,7 +533,7 @@ void Partition::FinishBgsave() {
   slash::MutexLock l(&bgsave_protector_);
   bgsave_info_.bgsaving = false;
 }
-
+#if 0
 bool Partition::FlushDB() {
   slash::RWLock rwl(&db_rwlock_, true);
   slash::MutexLock ml(&bgsave_protector_);
@@ -594,7 +594,7 @@ bool Partition::FlushSubDB(const std::string& db_name) {
   g_pika_server->PurgeDir(del_dbpath);
   return true;
 }
-
+#endif
 bool Partition::PurgeLogs(uint32_t to, bool manual) {
   // Only one thread can go through
   bool expect = false;

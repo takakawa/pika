@@ -69,7 +69,7 @@ static void daemonize() {
   setsid(); /* create a new session */
 }
 #endif
-
+#if 0
 static void close_std() {
   int fd;
   if ((fd = open("/dev/null", O_RDWR, 0)) != -1) {
@@ -79,6 +79,7 @@ static void close_std() {
     close(fd);
   }
 }
+#endif
 #if 0
 static void create_pid_file(void) {
   /* Try to write the pid file in a best-effort way. */
@@ -205,11 +206,6 @@ int main(int argc, char *argv[]) {
   g_pika_rm->Start();
   g_pika_server->Start();
   
-#if 0
-  if (g_pika_conf->daemonize()) {
-    unlink(g_pika_conf->pidfile().c_str());
-  }
-#endif
 
   // stop PikaReplicaManager first，avoid internal threads
   // may references to dead PikaServer
