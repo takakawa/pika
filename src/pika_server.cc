@@ -366,7 +366,7 @@ void PikaServer::InitTableStruct() {
                 new Table(name, num, db_path, log_path, trash_path)));
   }
 }
-
+#if 0
 bool PikaServer::RebuildTableStruct(const std::vector<TableStruct>& table_structs) {
 
 
@@ -389,6 +389,7 @@ bool PikaServer::RebuildTableStruct(const std::vector<TableStruct>& table_struct
   }
   return true;
 }
+#endif
 
 std::shared_ptr<Table> PikaServer::GetTable(const std::string &table_name) {
   slash::RWLock l(&tables_rw_, false);

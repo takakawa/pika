@@ -335,12 +335,12 @@ int PikaConf::Load()
   return ret;
 }
 
+#if 0
 void PikaConf::TryPushDiffCommands(const std::string& command, const std::string& value) {
   if (!CheckConfExist(command)) {
     diff_commands_[command] = value;
   }
 }
-#if 0
 int PikaConf::ConfigRewrite() {
   {
   RWLock l(&rwlock_, false);

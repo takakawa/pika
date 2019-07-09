@@ -114,18 +114,15 @@ class PikaConf : public slash::BaseConf {
     RWLock l(&rwlock_, true);
     thread_num_ = value;
   }
-#endif
   void SetTimeout(const int value) {
     RWLock l(&rwlock_, true);
     TryPushDiffCommands("timeout", std::to_string(value));
     timeout_ = value;
   }
-#if 0
   void SetThreadPoolSize(const int value) {
     RWLock l(&rwlock_, true);
     thread_pool_size_ = value;
   }
-#endif
   void SetSlaveof(const std::string value) {
     RWLock l(&rwlock_, true);
     TryPushDiffCommands("slaveof", value);
@@ -136,9 +133,10 @@ class PikaConf : public slash::BaseConf {
     TryPushDiffCommands("slave-priority", std::to_string(value));
     slave_priority_ = value;
   }
+#endif
   void SetWriteBinlog(const std::string& value) {
     RWLock l(&rwlock_, true);
-    TryPushDiffCommands("write-binlog", value);
+    //TryPushDiffCommands("write-binlog", value);
     write_binlog_ = (value == "yes") ? true : false;
   }
 #if 0
@@ -152,7 +150,6 @@ class PikaConf : public slash::BaseConf {
     TryPushDiffCommands("small-compaction-threshold", std::to_string(value));
     small_compaction_threshold_ = value;
   }
-#endif
   void SetBgsavePath(const std::string &value) {
     RWLock l(&rwlock_, true);
     bgsave_path_ = value;
@@ -211,7 +208,6 @@ class PikaConf : public slash::BaseConf {
     TryPushDiffCommands("expire-logs-days", std::to_string(value));
     expire_logs_days_ = value;
   }
-#if 0
   void SetMaxConnection(const int value) {
     RWLock l(&rwlock_, true);
     TryPushDiffCommands("maxclients", std::to_string(value));
@@ -237,13 +233,11 @@ class PikaConf : public slash::BaseConf {
     TryPushDiffCommands("slowlog-max-len", std::to_string(value));
     slowlog_max_len_ = value;
   }
-#endif
   void SetDbSyncSpeed(const int value) {
     RWLock l(&rwlock_, true);
     TryPushDiffCommands("db-sync-speed", std::to_string(value));
     db_sync_speed_ = value;
   }
-#if 0
   void SetCompactCron(const std::string &value) {
     RWLock l(&rwlock_, true);
     TryPushDiffCommands("compact-cron", value);
@@ -325,9 +319,11 @@ class PikaConf : public slash::BaseConf {
 
   std::string network_interface_;
 
+#if 0
   // diff commands between cached commands and config file commands
   std::map<std::string, std::string> diff_commands_;
   void TryPushDiffCommands(const std::string& command, const std::string& value);
+#endif
 
   //
   // Critical configure items
