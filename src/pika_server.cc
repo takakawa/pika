@@ -43,8 +43,8 @@ void DoDBSync(void* arg) {
 
 PikaServer::PikaServer() :
   exit_(false),
-  have_scheduled_crontask_(false),
-  last_check_compact_time_({0, 0}),
+  //have_scheduled_crontask_(false),
+  //last_check_compact_time_({0, 0}),
   master_ip_(""),
   master_port_(0),
   repl_state_(PIKA_REPL_NO_CONNECT),

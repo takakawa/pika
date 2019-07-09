@@ -231,8 +231,10 @@ class PikaServer {
   /*
    * CronTask used
    */
+#if 0
   bool have_scheduled_crontask_;
   struct timeval last_check_compact_time_;
+#endif
 
 
   /*
