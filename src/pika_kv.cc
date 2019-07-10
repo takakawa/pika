@@ -66,7 +66,7 @@ void SetCmd::DoInitial() {
 
 void SetCmd::Do(std::shared_ptr<Partition> partition) {
 //   printf("[%]SetCmd write binlog..[%s]->[%s]\n",key_.data(),value_.data());
-   std::cout << std::this_thread::get_id() << " | " << "SetCmd write binlog. " << key_ << " -> " << value_<< std::endl;
+   std::cout << std::this_thread::get_id() << " | " << partition->GetTableName() << "|"  <<  partition->GetPartitionName() << "|" << partition->GetPartitionId() <<"|"<< "SetCmd write binlog. " << key_ << " -> " << value_<< std::endl;
 #if 0
   rocksdb::Status s;
   int32_t res = 1;
@@ -146,7 +146,6 @@ std::string SetCmd::ToBinlog(
 }
 
 void DelCmd::DoInitial() {
-#if 0
   if (!CheckArg(argv_.size())) {
     res_.SetRes(CmdRes::kWrongNum, kCmdNameDel);
     return;
@@ -154,11 +153,10 @@ void DelCmd::DoInitial() {
   std::vector<std::string>::iterator iter = argv_.begin();
   keys_.assign(++iter, argv_.end());
   return;
-#endif
 }
 
 void DelCmd::Do(std::shared_ptr<Partition> partition) {
-   printf("del cmd write binlog...\n");
+   std::cout << std::this_thread::get_id() << " | " << partition->GetTableName() << "|"  <<  partition->GetPartitionName() << "|" << partition->GetPartitionId() << "|DelCmd write binlog. " << keys_[0] << std::endl;
 #if 0
   std::map<blackwidow::DataType, blackwidow::Status> type_status;
   int64_t count = partition->db()->Del(keys_, &type_status);

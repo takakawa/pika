@@ -130,30 +130,34 @@ static void usage()
 }
 
 
-void SimulateWriteCmd(){
+std::map<std::string, std::shared_ptr<std::atomic<int>>>  partitionSeq ;
+void SimulateWriteCmd(std::string partition, std::string cmd,  std::string keyprefix, std::string valprefix){
 
   std::string slaveof = g_pika_conf->slaveof(); 
   
-  fprintf(stderr, " mode in %s\n",slaveof.data());
-  int i  = 0;
+  fprintf(stderr, " slaveof  %s\n",slaveof.data());
+  std::shared_ptr<std::atomic<int>> i = partitionSeq[partition];
+  
+  *i  = 0;
   while( slaveof.empty()){
 
+          int seq = i->load(std::memory_order_relaxed);
+          (*i)++;
           std::this_thread::sleep_for (std::chrono::milliseconds(100));
           char key[100] = {0 };
-          sprintf(key, "testkey%d",i);
+          sprintf(key, "%s%d",keyprefix.data(),seq);
           char val[100] = {0 };
-          sprintf(val, "testv%d",i++);
-	  PikaCmdArgsType argv = {"set",key,val};
-	  Cmd* c_ptr = g_pika_cmd_table_manager->GetCmd("set");
+          sprintf(val, "%s%d",valprefix.data(),seq);
+	  PikaCmdArgsType argv = {cmd,key,val};
+	  Cmd* c_ptr = g_pika_cmd_table_manager->GetCmd(cmd);
 
 	  // Initial
-	  c_ptr->Initial(argv, "db0");
+	  c_ptr->Initial(argv, partition);
 	  if (!c_ptr->res().ok()) {
 	    fprintf(stderr,c_ptr->res().message().data());
 	    exit(-1);
 	  }
 	  c_ptr->Execute();
-          printf("ttdb write binlog\n");
   }
 }
 
@@ -197,12 +201,17 @@ int main(int argc, char *argv[]) {
   PikaGlogInit();
   PikaSignalSetup();
 
+  partitionSeq["db0"] = std::make_shared<std::atomic<int>>(0);
+  partitionSeq["db1"] = std::make_shared<std::atomic<int>>(1);
   LOG(INFO) << "Server at: " << path;
   g_pika_server = new PikaServer();
   g_pika_rm = new PikaReplicaManager();
   g_pika_cmd_table_manager = new PikaCmdTableManager();
 
-  std::thread ttdb(SimulateWriteCmd);
+  std::thread ttdb1(SimulateWriteCmd, "db0", "set", "setdb0","setdb0v");
+  std::thread ttdb2(SimulateWriteCmd, "db1", "set", "setdb1","setdb1v");
+  std::thread ttdb3(SimulateWriteCmd, "db0", "del", "deldb0","deldb0v");
+  std::thread ttdb4(SimulateWriteCmd, "db1", "del", "deldb1","deldb1v");
   g_pika_rm->Start();
   g_pika_server->Start();
   
