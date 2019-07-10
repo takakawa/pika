@@ -35,6 +35,7 @@ message InnerRequest {
   message MetaSync {
     required Node   node = 1;
     optional string auth = 2;
+    required int32 binlogsize = 3; // need to negotiate the binlog size,must be same. add by gaochuan
   }
 
   // slave to master

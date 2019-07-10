@@ -36,7 +36,11 @@ void PikaReplServerConn::HandleMetaSyncRequest(void* arg) {
 
   InnerMessage::InnerResponse response;
   response.set_type(InnerMessage::kMetaSync);
-  if (!g_pika_conf->requirepass().empty()
+
+  if (g_pika_conf->binlog_file_size() != meta_sync_request.binlogsize()){
+    response.set_code(InnerMessage::kError);
+    response.set_reply("slave's binlogsize is different from master , Invalid binlogsize");
+  }else if (!g_pika_conf->requirepass().empty()
     && g_pika_conf->requirepass() != masterauth) {
     response.set_code(InnerMessage::kError);
     response.set_reply("Auth with master error, Invalid masterauth");

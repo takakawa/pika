@@ -20,13 +20,17 @@ PikaAuxiliaryThread::~PikaAuxiliaryThread() {
 void* PikaAuxiliaryThread::ThreadMain() {
   while (!should_stop()) {
     if (g_pika_server->ShouldMetaSync()) {
+    //   LOG(INFO) << "PikaAuxiliary thread " << thread_id() << " ShouldMetaSyc!!!";
       g_pika_server->SendMetaSyncRequest();
     } else if (g_pika_server->MetaSyncDone()) {
+     //  LOG(INFO) << "PikaAuxiliary thread " << thread_id() << " MetaSycDone!!!";
       if (g_pika_server->LoopPartitionStateMachine()) {
+      //  LOG(INFO) << "PikaAuxiliary thread " << thread_id() << " RunEveryPationStateMachine!!!";
         RunEveryPartitionStateMachine();
       }
     }
 
+   // LOG(INFO) << "PikaAuxiliary thread " << thread_id() << " time run!";
     Status s = g_pika_rm->CheckSyncTimeout(slash::NowMicros());
     if (!s.ok()) {
       LOG(WARNING) << s.ToString();

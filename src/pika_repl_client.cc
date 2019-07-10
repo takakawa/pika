@@ -138,6 +138,8 @@ Status PikaReplClient::SendMetaSync() {
   }
 #endif
 
+  meta_sync->set_binlogsize(g_pika_conf->binlog_file_size()); //add by gaochuan, metasyn增加binlog大小信息，防止主从binlog大小不一，导致文件号计算有偏差
+
   std::string to_send;
   std::string master_ip = g_pika_server->master_ip();
   int master_port = g_pika_server->master_port();
@@ -146,7 +148,6 @@ Status PikaReplClient::SendMetaSync() {
       << master_ip << ":" << master_port << ")";
     return Status::Corruption("Serialize Failed");
   }
-  LOG(INFO) <<"|"<< to_send<<"|";
   LOG(INFO) << "Try Send Meta Sync Request to Master ("
     << master_ip << ":" << master_port << ")";
   return client_thread_->Write(master_ip, master_port + kPortShiftReplServer, to_send);
