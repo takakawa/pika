@@ -117,9 +117,11 @@ int PikaConf::Load()
   GetConfStr("compression", &compression_);
 #endif
   // set slave read only true as default
+#if 0
   slave_read_only_ = true;
   GetConfInt("slave-priority", &slave_priority_);
 
+#endif
   //
   // Immutable Sections
   //

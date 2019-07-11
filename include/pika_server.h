@@ -64,7 +64,9 @@ class PikaServer {
   std::string master_ip();
   int master_port();
   int role();
+#if 0
   bool readonly();
+#endif
   int repl_state();
   std::string repl_state_str();
   bool force_full_sync();

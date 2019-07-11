@@ -36,7 +36,9 @@ class PikaConf : public slash::BaseConf {
   // Getter
   int port()                                        { RWLock l(&rwlock_, false); return port_; }
   std::string slaveof()                             { RWLock l(&rwlock_, false); return slaveof_;}
+#if 0
   int slave_priority()                              { RWLock l(&rwlock_, false); return slave_priority_;}
+#endif
   bool write_binlog()                               { RWLock l(&rwlock_, false); return write_binlog_;}
 #if 0
   int thread_num()                                  { RWLock l(&rwlock_, false); return thread_num_; }
@@ -87,8 +89,8 @@ class PikaConf : public slash::BaseConf {
   int expire_logs_nums()                            { RWLock l(&rwlock_, false); return expire_logs_nums_; }
   int expire_logs_days()                            { RWLock l(&rwlock_, false); return expire_logs_days_; }
   std::string conf_path()                           { RWLock l(&rwlock_, false); return conf_path_; }
-  bool slave_read_only()                            { RWLock l(&rwlock_, false); return slave_read_only_; }
 #if 0
+  bool slave_read_only()                            { RWLock l(&rwlock_, false); return slave_read_only_; }
   int maxclients()                                  { RWLock l(&rwlock_, false); return maxclients_; }
   int root_connection_num()                         { RWLock l(&rwlock_, false); return root_connection_num_; }
   bool slowlog_write_errorlog()                     { RWLock l(&rwlock_, false); return slowlog_write_errorlog_;}
@@ -258,8 +260,8 @@ class PikaConf : public slash::BaseConf {
  private:
   int port_;
   std::string slaveof_;
-  int slave_priority_;
 #if 0
+  int slave_priority_;
   int thread_num_;
   int thread_pool_size_;
 #endif
@@ -300,7 +302,9 @@ class PikaConf : public slash::BaseConf {
 #endif
   int expire_logs_days_;
   int expire_logs_nums_;
+#if 0
   bool slave_read_only_;
+#endif
   std::string conf_path_;
 #if 0
   int max_cache_statistic_keys_;

@@ -292,6 +292,7 @@ int PikaServer::role() {
   return role_;
 }
 
+#if 0
 bool PikaServer::readonly() {
   slash::RWLock(&state_protector_, false);
   if ((role_ & PIKA_ROLE_SLAVE)
@@ -300,6 +301,7 @@ bool PikaServer::readonly() {
   }
   return false;
 }
+#endif
 
 int PikaServer::repl_state() {
   slash::RWLock(&state_protector_, false);
