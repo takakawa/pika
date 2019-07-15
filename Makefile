@@ -47,7 +47,6 @@ dummy := $(shell ("$(CURDIR)/detect_environment" "$(CURDIR)/make_config.mk"))
 include make_config.mk
 CLEAN_FILES += $(CURDIR)/make_config.mk
 PLATFORM_LDFLAGS += $(TCMALLOC_LDFLAGS)
-PLATFORM_LDFLAGS += $(ROCKSDB_LDFLAGS)
 PLATFORM_CXXFLAGS += $(TCMALLOC_EXTENSION_FLAGS)
 
 # ----------------------------------------------
@@ -67,10 +66,6 @@ PINK_PATH = $(THIRD_PATH)/pink
 endif
 PINK = $(PINK_PATH)/pink/lib/libpink$(DEBUG_SUFFIX).a
 
-ifndef ROCKSDB_PATH
-ROCKSDB_PATH = $(THIRD_PATH)/rocksdb
-endif
-ROCKSDB = $(ROCKSDB_PATH)/librocksdb$(DEBUG_SUFFIX).a
 
 ifndef GLOG_PATH
 GLOG_PATH = $(THIRD_PATH)/glog
@@ -84,8 +79,6 @@ endif
 INCLUDE_PATH = -I. \
 							 -I$(SLASH_PATH) \
 							 -I$(PINK_PATH) \
-							 -I$(ROCKSDB_PATH) \
-							 -I$(ROCKSDB_PATH)/include \
 
 ifeq ($(360),1)
 INCLUDE_PATH += -I$(GLOG_PATH)/src
@@ -94,7 +87,6 @@ endif
 LIB_PATH = -L./ \
 					 -L$(SLASH_PATH)/slash/lib \
 					 -L$(PINK_PATH)/pink/lib \
-					 -L$(ROCKSDB_PATH)        \
 
 ifeq ($(360),1)
 LIB_PATH += -L$(GLOG_PATH)/.libs
@@ -202,7 +194,7 @@ all: $(BINARY)
 
 dbg: $(BINARY)
 
-$(BINARY): $(SLASH) $(PINK) $(ROCKSDB) $(BLACKWIDOW) $(GLOG) $(PROTOOBJECTS) $(LIBOBJECTS)
+$(BINARY): $(SLASH) $(PINK)  $(GLOG) $(PROTOOBJECTS) $(LIBOBJECTS)
 	$(AM_V_at)rm -f $@
 	$(AM_V_at)$(AM_LINK)
 	$(AM_V_at)rm -rf $(OUTPUT)
@@ -216,9 +208,6 @@ $(SLASH):
 
 $(PINK):
 	$(AM_V_at)make -C $(PINK_PATH)/pink/ DEBUG_LEVEL=$(DEBUG_LEVEL) NO_PB=0 SLASH_PATH=$(SLASH_PATH)
-
-$(ROCKSDB):
-	$(AM_V_at)make -j $(PROCESSOR_NUMS) -C $(ROCKSDB_PATH)/ static_lib DISABLE_JEMALLOC=1 DEBUG_LEVEL=$(DEBUG_LEVEL)
 
 
 $(GLOG):
@@ -234,5 +223,4 @@ clean:
 distclean: clean
 	make -C $(PINK_PATH)/pink/ SLASH_PATH=$(SLASH_PATH) clean
 	make -C $(SLASH_PATH)/slash/ clean
-	make -C $(ROCKSDB_PATH)/ clean
 #	make -C $(GLOG_PATH)/ clean
